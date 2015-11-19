@@ -1,3 +1,4 @@
-README.md
-Contributers
-asherkhb
+#Findr Readme
+
+##Contributers
+* asherkhb
