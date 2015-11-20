@@ -42,7 +42,7 @@ def build_json(total_dic):
     with open("metadata.json",'w') as jsonfile: #builds json file
         json.dump(sorted_dic,jsonfile, separators=(',',':'),indent=4)
     print("DONE!")
-    return(sorted_dic)
+    return({key:sorted_dic[key].keys() for (key) in sorted_dic}) #return just the sorted names of the files, excluding the metadata
 
 if __name__ =="__main__":
     main(sys.argv[1:])
