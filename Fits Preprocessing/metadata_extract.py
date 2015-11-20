@@ -10,7 +10,7 @@ def create_metadata_and_sort(path):
     lst = os.listdir(path) #set path for list of fits files, change this to the correct path on your machine
     total_dic = {}
     with fits.open((path+lst[0])) as fits_file:
-        items = list(set([str(x) for x in fits_file[0].header.keys()]+["FILENAME"])) #get fieldnames from first fits file
+        items = list(set([str(header_field) for header_field in fits_file[0].header.keys()]+["FILENAME"])) #get fieldnames from first fits file
 
     with open('metadata.tsv',"wb") as csvfile:    #create a file called metadata.tsv for the output
         writer = csv.DictWriter(csvfile,fieldnames=items,delimiter= "\t")  #set up the writer, header fields, and delimiter
