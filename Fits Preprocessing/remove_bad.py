@@ -5,7 +5,7 @@ import sys,copy
 def clean_dic(dic):
     try:
         good_files = []
-        for image in dic["SCIENCE"]:  #Search dictionary built by my other script
+        for image in dic["SCIENCE"]:  #Search passed dictionary. Note: this expects the dictionary to be in the same from as the metadata.json file
             if dic["SCIENCE"][image]["AOLOOPST"] == "CLOSED":
                 good_files.append(image)   #store names of good files
         return(good_files)   #return those names
