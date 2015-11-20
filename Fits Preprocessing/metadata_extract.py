@@ -2,7 +2,7 @@ __author__ = 'Daniel Kapellusch'
 import  astropy.io.fits as fits,os,csv,json,sys #necessary imports. Note: this is written in python 2.
 
 def main(path):
-    if not path:
+    if not path: #set default path in the case of no passed param
         path = "sample_fits/"
     return(build_json(create_metadata_and_sort(path))) #call all functions below, passing each function's return to the next
 
@@ -39,10 +39,10 @@ def build_json(total_dic):
         else:
             print("was nothing somehow")
 
-    with open("metadata.json",'w') as jsonfile: #builds json file
-        json.dump(sorted_dic,jsonfile, separators=(',',':'),indent=4)
+    with open("metadata.json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
+        json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
     print("DONE!")
-    return({key:sorted_dic[key].keys() for (key) in sorted_dic}) #return just the sorted names of the files, excluding the metadata
+    return({key:sorted_dic[key].keys() for (key) in sorted_dic})
 
 if __name__ =="__main__":
     main(sys.argv[1:])
