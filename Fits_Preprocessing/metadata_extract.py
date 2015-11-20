@@ -7,7 +7,7 @@ def main(path):
     return(build_json(create_metadata_and_sort(path))) #call all functions below, passing each function's return to the next
 
 def create_metadata_and_sort(path):
-    lst = os.listdir(path) #set path for list of fits files, change this to the correct path on your machine
+    lst =  [fit for fit in os.listdir(path) if fit.endswith(".fits")] #get files in dir if they are .fits
     total_dic = {}
     with fits.open((path+lst[0])) as fits_file:
         items = list(set([str(header_field) for header_field in fits_file[0].header.keys()]+["FILENAME"])) #get fieldnames from first fits file
