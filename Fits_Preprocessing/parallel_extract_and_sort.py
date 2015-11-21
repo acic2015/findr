@@ -52,6 +52,6 @@ if __name__ =="__main__":
     duration = end - start
     #This module runs in ~0.44 seconds on my machine, processing my test batch of 10 files, although if I set the processes
     # in mp.pool() to be 1 the run time becomes ~0.22 seconds
-    #The serial version of this module runs in ~0.55 seconds under the same conditions
+    #The serial version of this module runs in ~0.55 seconds under the same conditions 
     print "Total Execution Time (seconds): %d.%d" % (duration.seconds, duration.microseconds)
     print(result)
