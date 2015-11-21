@@ -40,12 +40,18 @@ def build_json(total_dic):
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 def sort_list(ls):
-    #returns a dictionary with keys DARK and SCIENCE whose values are lists containing fits filenames of the corresponding type 
-    return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
-            "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
-    #seems like the following should be more efficent, although in my (possibly flawed) testing the above is faster
-    # return {"DARK":[[ls[index]["FILENAME"]  for index in range(len(ls))if ls[index]["VIMTYPE"] == "DARK"]][0],"SCIENCE":[[ls[index]["FILENAME"]  for index in range(len(ls))if ls[index]["VIMTYPE"] == "SCIENCE"]][0]}
-
+    dic = {"SCIENCE":[],"DARK":[]}
+    for i in ls:
+        if i["VIMTYPE"] == "DARK":
+            dic["DARK"].append(i["FILENAME"])
+        else:
+            dic["SCIENCE"].append(i["FILENAME"])
+    return(dic)
+    #Nightmarish 1-line solutions, that are just too slow :(
+    # return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
+    #         "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
+    #return {"DARK":[[img["FILENAME"] for img in ls[index:] if img["VIMTYPE"] == "DARK"] for index in range(len(ls))][0],
+    # "SCIENCE":[[img["FILENAME"] for img in ls[index:] if img["VIMTYPE"] == "SCIENCE"] for index in range(len(ls))][0]}
 if __name__ =="__main__":
     start = datetime.now()
     result = main(sys.argv[1:])
