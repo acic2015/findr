@@ -40,14 +40,13 @@ def build_json(total_dic):
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 def sort_list(ls):
+    #sort filenames into dictionary by VIMTYPE
     dic = {"SCIENCE":[],"DARK":[]}
-    for i in ls:
-        if i["VIMTYPE"] == "DARK":
-            dic["DARK"].append(i["FILENAME"])
-        else:
-            dic["SCIENCE"].append(i["FILENAME"])
+    [dic["SCIENCE"].append(i["FILENAME"]) if i["VIMTYPE"] == "SCIENCE" else dic["DARK"].append(i["FILENAME"]) for i in ls]
     return(dic)
-    #Nightmarish 1-line solutions, that are just too slow :(
+    
+    #My attempts at 1-line solutions, they are Nightmarish and just too slow :(
+    
     # return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
     #         "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
     #return {"DARK":[[img["FILENAME"] for img in ls[index:] if img["VIMTYPE"] == "DARK"] for index in range(len(ls))][0],
@@ -59,6 +58,6 @@ if __name__ =="__main__":
     duration = end - start
     #This module runs in ~0.44 seconds on my machine, processing my test batch of 10 files, although if I set the processes
     # in mp.pool() to be 1 the run time becomes ~0.22 seconds
-    #The serial version of this module runs in ~0.55 seconds under the same conditions 
+    #The serial version of this module runs in ~0.55 seconds under the same conditions
     print "Total Execution Time (seconds): %d.%d" % (duration.seconds, duration.microseconds)
     print(result)
