@@ -40,8 +40,8 @@ def build_json(total_dic):
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 def sort_list(ls):
-    return {"DARK":[img["FILENAME"] for img in [filter(lambda d: True if d["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
-            "SCIENCE":[img["FILENAME"] for img in [filter(lambda d: True if d["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
+    return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
+            "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
     #seems like the following should be more efficent, although in my (possibly flawed) testing the above is faster
     # return {"DARK":[[ls[index]["FILENAME"]  for index in range(len(ls))if ls[index]["VIMTYPE"] == "DARK"]][0],"SCIENCE":[[ls[index]["FILENAME"]  for index in range(len(ls))if ls[index]["VIMTYPE"] == "SCIENCE"]][0]}
 
