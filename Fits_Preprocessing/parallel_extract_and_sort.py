@@ -45,13 +45,7 @@ def sort_list(ls):
     [dic["SCIENCE"].append(i["FILENAME"]) if i["VIMTYPE"] == "SCIENCE" else dic["DARK"].append(i["FILENAME"]) for i in ls]
     return(dic)
     
-    #My attempts at 1-line solutions, they are nightmarish and just too slow :(
-    
-    # return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
-    #         "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
-    
-    #return {"DARK":[[img["FILENAME"] for img in ls[index:] if img["VIMTYPE"] == "DARK"] for index in range(len(ls))][0],
-    # "SCIENCE":[[img["FILENAME"] for img in ls[index:] if img["VIMTYPE"] == "SCIENCE"] for index in range(len(ls))][0]}
+
 if __name__ =="__main__":
     start = datetime.now()
     result = main(sys.argv[1:])
