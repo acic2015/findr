@@ -40,6 +40,7 @@ def build_json(total_dic):
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 def sort_list(ls):
+    #returns a dictionary with keys DARK and SCIENCE whose values are lists containing fits filenames of the corresponding type 
     return {"DARK":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="DARK" else False,ls[index:])for index in range(len(ls))][0]],
             "SCIENCE":[img["FILENAME"] for img in [filter(lambda fts: True if fts["VIMTYPE"] =="SCIENCE" else False,ls[index:])for index in range(len(ls))][0]]}
     #seems like the following should be more efficent, although in my (possibly flawed) testing the above is faster
