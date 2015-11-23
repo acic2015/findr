@@ -108,37 +108,49 @@ def runProcess(call):
 
 
 def subtractAndCenter(image_dict, masterdark, shifts_file):
+    # Build list of science images to process.
     sciences = image_dict['SCIENCE']
+    # Load shift values from file to memory.
     fileshifts = loadShifts(shifts_file)
-    subtractions = {}
-    slist = []
-    centerings = {}
-    clist = []
+    # Define necessary variables.
+    scmds = []
+    souts = []
+    ccmds = []
+    couts = []
 
+    # Build up commands for each science image.
     for img in sciences:
+        # Get norm and shift values.
         tnorm, bnorm = getNorms(img)
         xshift, yshift = getShifts(img, fileshifts)
 
+        # Build subtraction task.
         ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
-        subtractions[img] = {'cmd': ds_cmd, 'out': ds_out}
-        slist.append(ds_cmd)
+        # subtractions[img] = {'cmd': ds_cmd, 'out': ds_out}
+        scmds.append(ds_cmd)
+        souts.append(ds_out)
 
+        # Build centering task.
         cn_cmd, cn_out = spawnCentCmd(ds_out, xshift=xshift, yshift=yshift)
-        centerings[img] = {'cmd': cn_cmd, 'out': cn_out}
-        clist.append(cn_cmd)
+        # centerings[img] = {'cmd': cn_cmd, 'out': cn_out}
+        ccmds.append(cn_cmd)
+        couts.append(cn_out)
 
-    # Parallel subtraction.
+    # Execute subtraction tasks (parallel).
     sub_pool = mp.Pool(processes=max_processes)
-    sub_pool.map(runProcess, slist)
+    sub_pool.map(runProcess, scmds)
 
-    # Parallel centering.
+    # Execute centering tasks (parallel).
     cent_pool = mp.Pool(processes=max_processes)
-    cent_pool.map(runProcess, clist)
+    cent_pool.map(runProcess, ccmds)
+
+    # Return list of final filenames.
+    return couts
 
 
 def main():
-    subtractAndCenter(images, 'masterdark.fits', file_shifts)
-
+    cent_dsub_files = subtractAndCenter(images, 'masterdark.fits', file_shifts)
+    print cent_dsub_files
 
 if __name__ == '__main__':
     main()
