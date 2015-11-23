@@ -7,10 +7,22 @@ import pprint
 darksub = 'darksub'
 fitscent = 'fitscent'
 
+# File Shifts
+file_shifts = 'file_shifts.txt'
+
+# Maximum number of parallel processes.
+max_processes = 2
+
 # Just some sample testing data.
-images = {"DARK": [], "SCIENCE": ['V47_20141104054543818594.fits',
-                                  'V47_20141104054543818595.fits',
-                                  'V47_20141104054543818596.fits']}
+images = {"DARK": [], "SCIENCE": ['V47_20141104053022231159.fits',
+                                  'V47_20141104053022514640.fits',
+                                  'V47_20141104053022798116.fits',
+                                  'V47_20141104053023932047.fits',
+                                  'V47_20141104053024215509.fits',
+                                  'V47_20141104053024782464.fits',
+                                  'V47_20141104053025065946.fits',
+                                  'V47_20141104053026766813.fits',
+                                  'V47_20141104053027050292.fits']}
 
 
 def prependToFilename(filename, prepending):
@@ -58,6 +70,15 @@ def spawnCentCmd(subtracted_img, xshift, yshift):
     return cent_cmd, cent_out
 
 
+def loadShifts(shifts_file):
+    shifts = {}
+    with open(shifts_file, 'r') as s:
+        for l in s:
+            c = l.split()
+            shifts[c[0]] = {'x': c[1], 'y': c[2]}
+    return shifts
+
+
 def getNorms(img):  # TODO
     """
 
@@ -69,14 +90,14 @@ def getNorms(img):  # TODO
     return top, bot
 
 
-def getShifts(img):  # TODO
+def getShifts(img, fileshifts):  # TODO
     """
 
     :param img: image to get shift values
     :return: xshift, yshift
     """
-    xs = ''
-    ys = ''
+    xs = fileshifts[img]['x']
+    ys = fileshifts[img]['y']
     return xs, ys
 
 
@@ -86,8 +107,9 @@ def runProcess(call):
     return 1
 
 
-def subtractAndCenter(image_dict, masterdark):
+def subtractAndCenter(image_dict, masterdark, shifts_file):
     sciences = image_dict['SCIENCE']
+    fileshifts = loadShifts(shifts_file)
     subtractions = {}
     slist = []
     centerings = {}
@@ -95,7 +117,7 @@ def subtractAndCenter(image_dict, masterdark):
 
     for img in sciences:
         tnorm, bnorm = getNorms(img)
-        xshift, yshift = getShifts(img)
+        xshift, yshift = getShifts(img, fileshifts)
 
         ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
         subtractions[img] = {'cmd': ds_cmd, 'out': ds_out}
@@ -106,16 +128,16 @@ def subtractAndCenter(image_dict, masterdark):
         clist.append(cn_cmd)
 
     # Parallel subtraction.
-    sub_pool = mp.Pool()
+    sub_pool = mp.Pool(processes=max_processes)
     sub_pool.map(runProcess, slist)
 
     # Parallel centering.
-    cent_pool = mp.Pool()
+    cent_pool = mp.Pool(processes=max_processes)
     cent_pool.map(runProcess, clist)
 
 
 def main():
-    subtractAndCenter(images, 'masterdark.fits')
+    subtractAndCenter(images, 'masterdark.fits', file_shifts)
 
 
 if __name__ == '__main__':
