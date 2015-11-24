@@ -38,4 +38,4 @@ def main():
         "top": top_result
     }
 
-    return json.dumps(result)
+    return result
