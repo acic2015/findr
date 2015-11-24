@@ -42,6 +42,7 @@ def main(argv):
         # get fieldnames from first fits file
         with fits.open(fits_lst[0]) as fits_file:
             items = list(set([str(header_field) for header_field in fits_file[0].header.keys()]+["FILENAME"]))
+            items.remove("COMMENT")
 
         # setup multiprocessing pool
         pool = mp.Pool(processes=int(max_processes))
