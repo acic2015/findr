@@ -215,11 +215,11 @@ def runProcess(call):
     return 1
 
 
-def subtractAndCenter(image_dict, masterdark, shifts_file):
+def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
     global max_processes
     print("Subtracting and Centering")
     # Build list of science images to process.
-    sciences = image_dict['SCIENCE']
+    sciences = [image_path+'/'+image for image in image_dict['SCIENCE']]
     # Load shift values from file to memory.
     fileshifts = loadShifts(shifts_file)
     # Define necessary variables.

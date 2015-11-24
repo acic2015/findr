@@ -58,12 +58,12 @@ def main(argv):
 
     # run subtractAndCenter
     print("Running SubtractAndCenter...")
-    cent_dsub_files = findr_lib.subtractAndCenter(cleaned_dic,masterdark_fn,findr_lib.file_shifts)
+    cent_dsub_files = findr_lib.subtractAndCenter(fits_path, cleaned_dic,masterdark_fn,findr_lib.file_shifts)
 
     #TODO Klip-reduce
 
     #return a dictionary of lists of filenames sorted by type
-    return(sorted_dic)
+    return("Findr Complete")
 
 
 if __name__ == "__main__":
