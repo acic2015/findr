@@ -60,29 +60,21 @@ def main(argv):
         # make dictionary from list of all metadata
         total_dic = {item["FILENAME"]:item for item in ls}
 
-        # sort metadata into dictionary of lists based on VIMTYPE
-        print("Sorting header metadata")
-        sorted_dic = findr_lib.sort_dic(total_dic)
-
         #create json from list of metadata if config is set to allow
         print("Building "+ outputfname +".json")
         findr_lib.build_json(total_dic,outputfname)
 
-        # remove science files from metadata dictionary if AOLOOPST is OPEN
-        print("Cleaning sorted_dic")
-        cleaned_dic = findr_lib.clean_dic(sorted_dic,total_dic)
 
     else: #else don't bother extracting all that stuff just read it in from the json that is present
-
         with open(outputfname+".json") as json_data:
             total_dic = json.load(json_data)
 
-        # sort metadata into dictionary of lists based on VIMTYPE
-        print("Sorting header metadata")
-        sorted_dic = findr_lib.sort_dic(total_dic)
+    # sort metadata into dictionary of lists based on VIMTYPE
+    print("Sorting header metadata")
+    sorted_dic = findr_lib.sort_dic(total_dic)
 
-        # remove science files from metadata dictionary if AOLOOPST is OPEN
-        cleaned_dic = findr_lib.clean_dic(sorted_dic,total_dic)
+    # remove science files from metadata dictionary if AOLOOPST is OPEN
+    cleaned_dic = findr_lib.clean_dic(sorted_dic,total_dic)
 
     # Commented out while testing on my windows environment
     # # run master dark with
@@ -100,5 +92,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    print(main(sys.argv[1:]))
     print("Findr Complete")
