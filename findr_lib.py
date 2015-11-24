@@ -228,11 +228,14 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
     ccmds = []
     couts = []
 
+    failures = 0
     # Build up commands for each science image.
     for img in sciences:
         # Get norm and shift values.
         tnorm, bnorm = getNorms(img)
         xshift, yshift = getShifts(img, fileshifts)
+        if xshift==0 and yshift ==0:
+            failures += 1
 
         # Build subtraction task.
         ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
@@ -245,7 +248,8 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
         # centerings[img] = {'cmd': cn_cmd, 'out': cn_out}
         ccmds.append(cn_cmd)
         couts.append(cn_out)
-
+    print len(sciences)
+    print failures
     # Execute subtraction tasks (parallel).
     sub_pool = mp.Pool(processes=max_processes)
     sub_pool.map(runProcess, scmds)
