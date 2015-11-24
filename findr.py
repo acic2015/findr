@@ -136,7 +136,7 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
     global path, darkmaster
 
     # Write dark images to config file.
-    darks = [path+'/'+image_dict['DARK'] for
+    darks = [path+'/'+image for image in image_dict['DARK']]
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
