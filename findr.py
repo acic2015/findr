@@ -16,8 +16,8 @@ def main(argv):
     if not argv:
         print "findr.py, path, config_file name"
 
-    global path, max_processes,file_shifts,darkmaster,darksub,fitscent
-    path = argv[0]  # get path and cfg file name from passed args
+    global imgpath, max_processes,file_shifts,darkmaster,darksub,fitscent
+    imgpath = argv[0]  # get path and cfg file name from passed args
     config_file = argv[1]
 
     print "Loading Configuration File..."
