@@ -1,21 +1,18 @@
-import  astropy.io.fits as fits
 import os
 import csv
 import json
-import multiprocessing as mp #necessary imports. Note: this is written in python 2.
-from os import path\
-,system
+from os import path, system
 
+import astropy.io.fits as fits
 
-
-global max_processes,file_shifts,darkmaster,darksub,fitscent
+__author__ = "Daniel Kapellusch, Asher Baltzell"
 
 
 # Hopefully this will be gone soon
 def set_config_vals(**optional_args):
-    global max_processes,file_shifts,darkmaster,darksub,fitscent
+    global max_processes, file_shifts, darkmaster, darksub, fitscent
 
-    max_processes = optional_args["max_processes"] #assign globals
+    max_processes = optional_args["max_processes"]  # assign globals
     file_shifts = optional_args["file_shifts"]
     darkmaster = optional_args["darkmaster"]
     darksub = optional_args["darksub"]
@@ -24,38 +21,39 @@ def set_config_vals(**optional_args):
 
 def get_metadata_and_sort(image):
     with fits.open(image) as hdulist:
-        header = hdulist[0].header #get all the metadata from the fits file hdulist
+        header = hdulist[0].header  # get all the metadata from the fits file hdulist
     header["FILENAME"] = path.basename(image)
-    return({key: value for key, value in header.items() #remove comment field
-            if key is not "COMMENT"})
+    return {key: value for key, value in header.items()  # remove comment field
+            if key is not "COMMENT"}
 
 
-def make_tsv(header,items,outputfname):
-    with open(outputfname+".tsv","wb") as csvfile:    #create a file called metadata.tsv for the output
-        writer = csv.DictWriter(csvfile,fieldnames=items,delimiter= "\t")  #set up the writer, header fields, and delimiter
-        writer.writeheader() # write the headers to the file
-        [writer.writerow({k:str(image[k]) for k in items}) for image in header]
+def make_tsv(header, items, outputfname):
+    with open(outputfname + ".tsv", "wb") as csvfile:  # create a file called metadata.tsv for the output
+        # set up the writer, header fields, and delimiter
+        writer = csv.DictWriter(csvfile, fieldnames=items, delimiter="\t")
+        writer.writeheader()  # write the headers to the file
+        [writer.writerow({k: str(image[k]) for k in items}) for image in header]
 
 
-def build_json(total_dic,outputfname):
-    with open(outputfname+".json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
-        json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
+def build_json(total_dic, outputfname):
+    with open(outputfname + ".json", 'w') as jsonfile:  # builds json file of metadata not sorted by VIMTYPE
+        json.dump(total_dic, jsonfile, separators=(',', ':'), indent=4)
 
 
 def sort_dic(total_dic):
-    #sort total_dic into dictionary by VIMTYPE
-    sorted_dic = {"SCIENCE":[],"DARK":[]}
-    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE"\
-         else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
-    return(sorted_dic)
+    # sort total_dic into dictionary by VIMTYPE
+    sorted_dic = {"SCIENCE": [], "DARK": []}
+    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE"
+     else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
+    return sorted_dic
 
 
-def clean_dic(sorted_dic,total_dic):
-    cleaned_dic = {'SCIENCE':[],"DARK":sorted_dic["DARK"]}
-    for image in sorted_dic["SCIENCE"]:  #Search dictionary built by my other script
+def clean_dic(sorted_dic, total_dic):
+    cleaned_dic = {'SCIENCE': [], "DARK": sorted_dic["DARK"]}
+    for image in sorted_dic["SCIENCE"]:  # Search dictionary built by my other script
         if total_dic[image]["AOLOOPST"] == "CLOSED":
-            cleaned_dic["SCIENCE"].append(image)   #store names of good files
-    return(cleaned_dic)   #return those names
+            cleaned_dic["SCIENCE"].append(image)  # store names of good files
+    return cleaned_dic  # return those names
 
 
 def writeListCfg(lst, cfgname):
@@ -98,7 +96,7 @@ def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename
     global darkmaster
 
     # Write dark images to config file.
-    darks = [image_path+'/'+image for image in image_dict['DARK']]
+    darks = [image_path + '/' + image for image in image_dict['DARK']]
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
@@ -123,6 +121,7 @@ def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename
     print cmd
     system(cmd)
     return 1
+
 
 def prependToFilename(filename, prepending):
     """
@@ -214,7 +213,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
     global max_processes
     print("Subtracting and Centering")
     # Build list of science images to process.
-    sciences = [image_path+'/'+image for image in image_dict['SCIENCE']]
+    sciences = [image_path + '/' + image for image in image_dict['SCIENCE']]
     # Load shift values from file to memory.
     fileshifts = loadShifts(shifts_file)
     # Define necessary variables.
@@ -229,7 +228,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
         # Get norm and shift values.
         tnorm, bnorm = getNorms(img)
         xshift, yshift = getShifts(os.path.basename(img), fileshifts)
-        if xshift==0 and yshift ==0:
+        if xshift == 0 and yshift == 0:
             failures += 1
 
         # Build subtraction task.
@@ -246,17 +245,17 @@ def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
     print len(sciences)
     print failures
     # Execute subtraction tasks (parallel).
-    #sub_pool = mp.Pool(processes=max_processes)
-    #print max_processes
-    #sub_pool.map(runProcess, scmds)
+    # sub_pool = mp.Pool(processes=max_processes)
+    # print max_processes
+    # sub_pool.map(runProcess, scmds)
 
     # Execute subtraction tasks (serial).
     for c in scmds:
         runProcess(c)
 
     # Execute centering tasks (parallel).
-    #cent_pool = mp.Pool(processes=max_processes)
-    #cent_pool.map(runProcess, ccmds)
+    # cent_pool = mp.Pool(processes=max_processes)
+    # cent_pool.map(runProcess, ccmds)
 
     for c in ccmds:
         runProcess(c)
