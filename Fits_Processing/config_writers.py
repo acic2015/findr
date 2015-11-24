@@ -29,3 +29,9 @@ def writeDictCfg(dct, cfgname):
         cfg_out.write('%s=%s\n' % (str(k), str(v)))
     cfg_out.close()
     return cfgname
+
+#list = ['dark1', 'dark2', 'dark3', 'dark4']
+#dict = {'key1':'val1', 'key2':'val2', 'key3':'val3'}
+
+#writeListCfg(list, 'samplelist.cfg')
+#writeDictCfg(dict, 'sampledict.cfg')

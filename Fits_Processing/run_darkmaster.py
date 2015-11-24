@@ -24,6 +24,7 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
     # Fill out height/width of centered normalization region (overrides normalization coordinates), if present.
     if width and height:
         options += ' --width=%s --height=%s' % (str(width), str(height))
+
     # Add median options, if present
     if medianNorm:
         options += ' --medianNorm'
