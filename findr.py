@@ -9,22 +9,24 @@ from os import path
 import ConfigParser
 from os import system
 
-global max_processes,file_shifts,darksub,fitscent
+global max_processes,file_shifts,darkmaster,darksub,fitscent
 
 
 def main(argv):
     if not argv:
         print "findr.py, path, config_file name"
 
-    global max_processes,file_shifts,darksub,fitscent
-    path = argv[0]   # get path and cfg file name from passed args
+    global max_processes,file_shifts,darkmaster,darksub,fitscent
+    path = argv[0]  # get path and cfg file name from passed args
     config_file = argv[1]
 
+    print "Loading Configuration File..."
     config = ConfigParser.ConfigParser()  # open config file as input file with config parser
     config.read(config_file)
 
     max_processes = config.get("findr","max_processes")  # read cfg and get applicable fields
     file_shifts = config.get("findr","fileshifts")
+    darkmaster = config.get("findr","darkmaster_path")
     darksub = config.get("findr","darksub_path")
     fitscent = config.get("findr","fitscent_path")
 
@@ -40,7 +42,7 @@ def main(argv):
     sorted_dic = sort_list(ls) # sort metadata into dictionary of lists based on VIMTYPE
     make_tsv(ls,items) #generate tsv of metadata
     total_dic = {item["FILENAME"]:item for item in ls}  # make
-    print(total_dic)
+    # print(total_dic)
     build_json(total_dic) #create json from list of metadata
     cleaned_dic = clean_dic(sorted_dic,total_dic)  # remove science files from metadata dictionary if AOLOOPST is OPEN
 
@@ -126,6 +128,8 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
                   width=None, height=None,
                   config=None, medianNorm=False, medianDark=False):
 
+    global darkmaster
+
     # Write dark images to config file.
     darks = image_dict['DARK']
     writeListCfg(darks, darklist_filename)
@@ -148,7 +152,8 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
     if medianDark:
         options += ' --medianDark'
     # Build & call darkmaster command.
-    cmd = 'darkmaster ' + options
+    cmd = darkmaster + ' ' + options
+    print cmd
     system(cmd)
     return 1
 
@@ -223,9 +228,13 @@ def getShifts(img, fileshifts):  # TODO
     :param img: image to get shift values
     :return: xshift, yshift
     """
-    xs = fileshifts[img]['x']
-    ys = fileshifts[img]['y']
-    return xs, ys
+    try:
+        xs = fileshifts[img]['x']
+        ys = fileshifts[img]['y']
+        return xs, ys
+    except KeyError:
+        print "Warning (getShifts): %s not found in fileshifts" % str(img)
+        return 0, 0
 
 
 def runProcess(call):
