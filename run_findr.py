@@ -62,7 +62,7 @@ def main(argv):
 
         # sort metadata into dictionary of lists based on VIMTYPE
         print("Sorting header metadata")
-        sorted_dic = findr_lib.sort_list(total_dic)
+        sorted_dic = findr_lib.sort_dic(total_dic)
 
         #create json from list of metadata if config is set to allow
         print("Building "+ outputfname +".json")
