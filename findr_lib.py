@@ -210,7 +210,7 @@ def getShifts(img, fileshifts):  # TODOr
 
 
 def runProcess(call):
-
+    print call
     os.system(call)
     return 1
 
@@ -251,12 +251,20 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
     print len(sciences)
     print failures
     # Execute subtraction tasks (parallel).
-    sub_pool = mp.Pool(processes=max_processes)
-    sub_pool.map(runProcess, scmds)
+    #sub_pool = mp.Pool(processes=max_processes)
+    #print max_processes
+    #sub_pool.map(runProcess, scmds)
+
+    # Execute subtraction tasks (serial).
+    for c in scmds:
+        runProcess(c)
 
     # Execute centering tasks (parallel).
-    cent_pool = mp.Pool(processes=max_processes)
-    cent_pool.map(runProcess, ccmds)
+    #cent_pool = mp.Pool(processes=max_processes)
+    #cent_pool.map(runProcess, ccmds)
+
+    for c in ccmds:
+        runProcess(c)
 
     # Return list of final filenames.
     return couts
