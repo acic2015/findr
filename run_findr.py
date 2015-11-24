@@ -17,7 +17,6 @@ def main(argv):
 
     # get path and cfg file name from passed args
     fits_path = argv[0]
-    print(fits_path)
     config_file = argv[1]
 
     #  read config_vals into findr_lib from file name
