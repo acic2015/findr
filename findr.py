@@ -1,22 +1,35 @@
 __author__ = 'Daniel Kapellusch'
-import  astropy.io.fits as fits,os,csv,json,sys,multiprocessing as mp #necessary imports. Note: this is written in python 2.
+import  astropy.io.fits as fits
+import os
+import csv
+import json
+import sys
+import multiprocessing as mp #necessary imports. Note: this is written in python 2.
 from os import path
-from ConfigParser import ConfigParser
+import ConfigParser
 from os import system
 
-global max_processes
-max_processes = 2
+global max_processes,file_shifts,darksub,fitscent
 
-file_shifts = "Fits_Processing/file_shifts.txt"
 
-darksub = 'darksub'
-fitscent = 'fitscent'
+def main(argv):
+    if not argv:
+        print "findr.py, path, config_file name"
 
-def main(path):
+    global max_processes,file_shifts,darksub,fitscent
+    path = argv[0]   # get path and cfg file name from passed args
+    config_file = argv[1]
+
+    config = ConfigParser.ConfigParser()  # open config file as input file with config parser
+    config.read(config_file)
+
+    max_processes = config.get("findr","max_processes")  # read cfg and get applicable fields
+    file_shifts = config.get("findr","fileshifts")
+    darksub = config.get("findr","darksub_path")
+    fitscent = config.get("findr","fitscent_path")
+
+
     darklist_fn, masterdark_fn, norm_fn = "darks.list", "mastedark.fits","norm.dat"
-    if not path:  # set default path in the case of no passed param
-        path = "Fits_Preprocessing/sample_fits/"
-
     fits_lst =  [path+"/"+fit for fit in os.listdir(path) if fit.endswith(".fits")]  # get files in dir if they are .fits
     with fits.open(fits_lst[0]) as fits_file:
         items = list(set([str(header_field) for header_field in fits_file[0].header.keys()]+["FILENAME"]))  # get fieldnames from first fits file
@@ -24,17 +37,17 @@ def main(path):
     pool = mp.Pool(processes=None)   # setup multiprocessing pool
     ls = pool.map(get_metadata_and_sort,fits_lst) #asynchronously gather metadata
 
-    sorted_dic = sort_list(ls)
-
+    sorted_dic = sort_list(ls) # sort metadata into dictionary of lists based on VIMTYPE
     make_tsv(ls,items) #generate tsv of metadata
-    total_dic = {item["FILENAME"]:item for item in ls}
+    total_dic = {item["FILENAME"]:item for item in ls}  # make
+    print(total_dic)
     build_json(total_dic) #create json from list of metadata
-    cleaned_dic = clean_dic(sorted_dic,total_dic)
+    cleaned_dic = clean_dic(sorted_dic,total_dic)  # remove science files from metadata dictionary if AOLOOPST is OPEN
 
-    runDarkmaster(cleaned_dic,darklist_fn,masterdark_fn,norm_fn)
+    runDarkmaster(cleaned_dic,darklist_fn,masterdark_fn,norm_fn)  # run master dark with
+    cent_dsub_files = subtractAndCenter(cleaned_dic,masterdark_fn,file_shifts)  # run subtractAndCenter
 
-    cent_dsub_files = subtractAndCenter(cleaned_dic,masterdark_fn,file_shifts)
-
+    #TODO Klip-reduce
     return(sorted_dic) #return a dictionary of lists of filenames sorted by type
 
 
@@ -264,4 +277,4 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
 
 
 if __name__ == "__main__":
-    print(main(None))
+    print(main(sys.argv[1:]))
