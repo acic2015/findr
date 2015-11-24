@@ -8,7 +8,9 @@ import multiprocessing as mp #necessary imports. Note: this is written in python
 from os import path
 import ConfigParser
 from os import system
+#necessary imports. Note: this is written in python 2.
 
+#globals
 global max_processes,file_shifts,darksub,fitscent
 
 
@@ -40,7 +42,7 @@ def main(argv):
     sorted_dic = sort_list(ls) # sort metadata into dictionary of lists based on VIMTYPE
     make_tsv(ls,items) #generate tsv of metadata
     total_dic = {item["FILENAME"]:item for item in ls}  # make
-    print(total_dic)
+
     build_json(total_dic) #create json from list of metadata
     cleaned_dic = clean_dic(sorted_dic,total_dic)  # remove science files from metadata dictionary if AOLOOPST is OPEN
 
@@ -52,6 +54,7 @@ def main(argv):
 
 
 def get_metadata_and_sort(image):
+    print("Building Total_Dic")
     hdulist = fits.open(image) # open each fits file in the list
     header = hdulist[0].header #get all the metadata from the fits file hdulist
     hdulist.close()
@@ -64,6 +67,7 @@ def get_metadata_and_sort(image):
 
 
 def make_tsv(header,items):
+    print("Outputting metadata.tsv")
     with open('metadata.tsv',"wb") as csvfile:    #create a file called metadata.tsv for the output
         writer = csv.DictWriter(csvfile,fieldnames=items,delimiter= "\t")  #set up the writer, header fields, and delimiter
         writer.writeheader() # write the headers to the file
@@ -71,11 +75,13 @@ def make_tsv(header,items):
 
 
 def build_json(total_dic):
+    print("Outputting metadata.json")
     with open("metadata.json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 
 def sort_list(ls):
+    print("Sorting list into sorted_dic")
     #sort filenames into dictionary by VIMTYPE
     dic = {"SCIENCE":[],"DARK":[]}
     [dic["SCIENCE"].append(i["FILENAME"]) if i["VIMTYPE"] == "SCIENCE" else dic["DARK"].append(i["FILENAME"]) for i in ls]
@@ -83,6 +89,7 @@ def sort_list(ls):
 
 
 def clean_dic(sorted_dic,total_dic):
+    print("Cleaning dic")
     cleaned_dic = {'SCIENCE':[],"DARK":sorted_dic["DARK"]}
     for image in sorted_dic["SCIENCE"]:  #Search dictionary built by my other script
         if total_dic[image]["AOLOOPST"] == "CLOSED":
@@ -125,6 +132,7 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
                   top_xo=None, top_xf=None, top_yo=None, top_yf=None,
                   width=None, height=None,
                   config=None, medianNorm=False, medianDark=False):
+    print("Running DarkMaster")
 
     # Write dark images to config file.
     darks = image_dict['DARK']
@@ -229,13 +237,14 @@ def getShifts(img, fileshifts):  # TODO
 
 
 def runProcess(call):
-    print call
+
     os.system(call)
     return 1
 
 
 def subtractAndCenter(image_dict, masterdark, shifts_file):
     global max_processes
+    print("Subtracting and Centering")
     # Build list of science images to process.
     sciences = image_dict['SCIENCE']
     # Load shift values from file to memory.
