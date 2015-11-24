@@ -233,7 +233,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
     for img in sciences:
         # Get norm and shift values.
         tnorm, bnorm = getNorms(img)
-        xshift, yshift = getShifts(img, fileshifts)
+        xshift, yshift = getShifts(os.path.basename(img), fileshifts)
         if xshift==0 and yshift ==0:
             failures += 1
 
