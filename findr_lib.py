@@ -5,54 +5,48 @@ import json
 import multiprocessing as mp #necessary imports. Note: this is written in python 2.
 from os import path\
 ,system
-import ConfigParser
+
 
 
 global max_processes,file_shifts,darkmaster,darksub,fitscent
 
 
-
-def get_config_vals(fname,*optional_args):
+# Hopefully this will be gone soon
+def set_config_vals(**optional_args):
     global max_processes,file_shifts,darkmaster,darksub,fitscent
-    config = ConfigParser.ConfigParser()
-    config.read(fname)
 
-    max_processes = config.get("findr","max_processes")  # read cfg and get applicable fields
-    file_shifts = config.get("findr","fileshifts")
-    darkmaster = config.get("findr", "darkmaster_path")
-    darksub = config.get("findr","darksub_path")
-    fitscent = config.get("findr","fitscent_path")
+    max_processes = optional_args["max_processes"]  # read cfg and get applicable fields
+    file_shifts = optional_args["file_shifts"]
+    darkmaster = optional_args["darkmaster"]
+    darksub = optional_args["darksub"]
+    fitscent = optional_args["fitscent"]
 
 
 def get_metadata_and_sort(image):
-    hdulist = fits.open(image) # open each fits file in the list
-    header = hdulist[0].header #get all the metadata from the fits file hdulist
-    hdulist.close()
+    with fits.open(image) as hdulist:
+        header = hdulist[0].header #get all the metadata from the fits file hdulist
     header["FILENAME"] = path.basename(image)
-    temp = str(str(header["COMMENT"]).encode('ascii', 'ignore')) #encode in ascii as unicode doesn't play nice
-    header = {key: value for key, value in header.items() #remove double comment field
-            if key is not "COMMENT"}
-    header["COMMENT"] = temp.replace("\n","  ") #put comments back in
-    return(header)
+    return({key: value for key, value in header.items() #remove comment field
+            if key is not "COMMENT"})
 
 
-def make_tsv(header,items):
-    with open('metadata.tsv',"wb") as csvfile:    #create a file called metadata.tsv for the output
+def make_tsv(header,items,outputfname):
+    with open(outputfname+".tsv","wb") as csvfile:    #create a file called metadata.tsv for the output
         writer = csv.DictWriter(csvfile,fieldnames=items,delimiter= "\t")  #set up the writer, header fields, and delimiter
         writer.writeheader() # write the headers to the file
         [writer.writerow({k:str(image[k]) for k in items}) for image in header]
 
 
-def build_json(total_dic):
-    with open("metadata.json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
+def build_json(total_dic,outputfname):
+    with open(outputfname+".json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
         json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
 
 
-def sort_list(ls):
-    #sort filenames into dictionary by VIMTYPE
-    dic = {"SCIENCE":[],"DARK":[]}
-    [dic["SCIENCE"].append(i["FILENAME"]) if i["VIMTYPE"] == "SCIENCE" else dic["DARK"].append(i["FILENAME"]) for i in ls]
-    return(dic)
+def sort_dic(total_dic):
+    #sort total_dic into dictionary by VIMTYPE
+    sorted_dic = {"SCIENCE":[],"DARK":[]}
+    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE" else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
+    return(sorted_dic)
 
 
 def clean_dic(sorted_dic,total_dic):
