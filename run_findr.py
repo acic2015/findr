@@ -28,7 +28,7 @@ def main(argv):
 
     # setup multiprocessing pool
     pool = mp.Pool(processes=None)
-    print("Building Total_Dic")
+    print("Extracting metadata")
     #asynchronously gather metadata
     ls = pool.map(findr_lib.get_metadata_and_sort,fits_lst)
 
@@ -54,8 +54,7 @@ def main(argv):
 
     # run master dark with
     print("Running DarkMaster...")
-    findr_lib.runDarkmaster(cleaned_dic,darklist_fn,masterdark_fn,norm_fn)
-
+    findr_lib.runDarkmaster(fits_path, cleaned_dic,darklist_fn,masterdark_fn,norm_fn)
 
     # run subtractAndCenter
     print("Running SubtractAndCenter...")

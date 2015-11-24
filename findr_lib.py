@@ -92,17 +92,17 @@ def writeDictCfg(dct, cfgname):
     return cfgname
 
 
-def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filename,
+def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename, norm_filename,
                   bot_xo=None, bot_xf=None, bot_yo=None, bot_yf=None,
                   top_xo=None, top_xf=None, top_yo=None, top_yf=None,
                   width=None, height=None,
                   config=None, medianNorm=False, medianDark=False):
     print("Running DarkMaster")
 
-    global path, darkmaster
+    global img_path, darkmaster
 
     # Write dark images to config file.
-    darks = [path+'/'+image for image in image_dict['DARK']]
+    darks = [img_path+'/'+image for image in image_dict['DARK']]
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
