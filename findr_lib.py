@@ -45,7 +45,8 @@ def build_json(total_dic,outputfname):
 def sort_dic(total_dic):
     #sort total_dic into dictionary by VIMTYPE
     sorted_dic = {"SCIENCE":[],"DARK":[]}
-    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE" else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
+    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE"\
+         else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
     return(sorted_dic)
 
 
