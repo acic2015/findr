@@ -15,7 +15,7 @@ global max_processes,file_shifts,darkmaster,darksub,fitscent
 def set_config_vals(**optional_args):
     global max_processes,file_shifts,darkmaster,darksub,fitscent
 
-    max_processes = optional_args["max_processes"]  # read cfg and get applicable fields
+    max_processes = optional_args["max_processes"] #assign globals
     file_shifts = optional_args["file_shifts"]
     darkmaster = optional_args["darkmaster"]
     darksub = optional_args["darksub"]

@@ -2,7 +2,7 @@ __author__ = 'Daniel Kapellusch'
 # Necessary imports. Note: this is written in python 2.
 import sys
 import findr_lib
-import  astropy.io.fits as fits
+import astropy.io.fits as fits
 import os
 import multiprocessing as mp
 from ConfigParser import ConfigParser
@@ -13,11 +13,9 @@ def main(argv):
     if not argv:
         print "run_findr.py fits_path config_file"
 
-
     # get path and cfg file name from passed args
     fits_path = argv[0]
     config_file = argv[1]
-
 
     # read config_vals into findr_lib from file name
     print "Loading Configuration File..."
@@ -29,7 +27,6 @@ def main(argv):
     darksub  = config.get("findr","darksub_path")
     fitscent = config.get("findr","fitscent_path")
     outputfname = config.get("findr","outputfname")
-
 
     # Hopefully this will go away soon
     findr_lib.set_config_vals(max_processes = max_processes,file_shifts = file_shifts
@@ -64,8 +61,8 @@ def main(argv):
         print("Building "+ outputfname +".json")
         findr_lib.build_json(total_dic,outputfname)
 
-
     else: #else don't bother extracting all that stuff just read it in from the json that is present
+        print("Found .json and .tsv files of specified outputfname, reading this instead...")
         with open(outputfname+".json") as json_data:
             total_dic = json.load(json_data)
 
@@ -92,5 +89,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    print(main(sys.argv[1:]))
+    main(sys.argv[1:])
     print("Findr Complete")
