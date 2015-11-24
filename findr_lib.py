@@ -8,17 +8,18 @@ from os import path\
 import ConfigParser
 
 
-global max_processes,file_shifts,darksub,fitscent
+global max_processes,file_shifts,darkmaster,darksub,fitscent
 
 
 
 def get_config_vals(fname,*optional_args):
-    global max_processes,file_shifts,darksub,fitscent
+    global max_processes,file_shifts,darkmaster,darksub,fitscent
     config = ConfigParser.ConfigParser()
     config.read(fname)
 
     max_processes = config.get("findr","max_processes")  # read cfg and get applicable fields
     file_shifts = config.get("findr","fileshifts")
+    darkmaster = config.get("findr", "darkmaster_path")
     darksub = config.get("findr","darksub_path")
     fitscent = config.get("findr","fitscent_path")
 
@@ -99,10 +100,10 @@ def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename
                   config=None, medianNorm=False, medianDark=False):
     print("Running DarkMaster")
 
-    global img_path, darkmaster
+    global darkmaster
 
     # Write dark images to config file.
-    darks = [img_path+'/'+image for image in image_dict['DARK']]
+    darks = [image_path+'/'+image for image in image_dict['DARK']]
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
