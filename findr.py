@@ -9,14 +9,14 @@ from os import path
 import ConfigParser
 from os import system
 
-global max_processes,file_shifts,darkmaster,darksub,fitscent
+global path, max_processes,file_shifts,darkmaster,darksub,fitscent
 
 
 def main(argv):
     if not argv:
         print "findr.py, path, config_file name"
 
-    global max_processes,file_shifts,darkmaster,darksub,fitscent
+    global path, max_processes,file_shifts,darkmaster,darksub,fitscent
     path = argv[0]  # get path and cfg file name from passed args
     config_file = argv[1]
 
@@ -128,10 +128,10 @@ def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filen
                   width=None, height=None,
                   config=None, medianNorm=False, medianDark=False):
 
-    global darkmaster
+    global path, darkmaster
 
     # Write dark images to config file.
-    darks = image_dict['DARK']
+    darks = [path+'/'+image_dict['DARK'] for
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
@@ -222,7 +222,7 @@ def getNorms(img):  # TODO
     return top, bot
 
 
-def getShifts(img, fileshifts):  # TODO
+def getShifts(img, fileshifts):  # TODOr
     """
 
     :param img: image to get shift values
