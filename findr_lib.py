@@ -1,65 +1,59 @@
-import  astropy.io.fits as fits
 import os
 import csv
 import json
-import multiprocessing as mp #necessary imports. Note: this is written in python 2.
-from os import path\
-,system
-import ConfigParser
+from os import path, system
+
+import astropy.io.fits as fits
+
+__author__ = "Daniel Kapellusch, Asher Baltzell"
 
 
-global max_processes,file_shifts,darksub,fitscent
+# Hopefully this will be gone soon
+def set_config_vals(**optional_args):
+    global max_processes, file_shifts, darkmaster, darksub, fitscent
 
-
-
-def get_config_vals(fname,*optional_args):
-    global max_processes,file_shifts,darksub,fitscent
-    config = ConfigParser.ConfigParser()
-    config.read(fname)
-
-    max_processes = config.get("findr","max_processes")  # read cfg and get applicable fields
-    file_shifts = config.get("findr","fileshifts")
-    darksub = config.get("findr","darksub_path")
-    fitscent = config.get("findr","fitscent_path")
+    max_processes = optional_args["max_processes"]  # assign globals
+    file_shifts = optional_args["file_shifts"]
+    darkmaster = optional_args["darkmaster"]
+    darksub = optional_args["darksub"]
+    fitscent = optional_args["fitscent"]
 
 
 def get_metadata_and_sort(image):
-    hdulist = fits.open(image) # open each fits file in the list
-    header = hdulist[0].header #get all the metadata from the fits file hdulist
-    hdulist.close()
+    with fits.open(image) as hdulist:
+        header = hdulist[0].header  # get all the metadata from the fits file hdulist
     header["FILENAME"] = path.basename(image)
-    temp = str(str(header["COMMENT"]).encode('ascii', 'ignore')) #encode in ascii as unicode doesn't play nice
-    header = {key: value for key, value in header.items() #remove double comment field
+    return {key: value for key, value in header.items()  # remove comment field
             if key is not "COMMENT"}
-    header["COMMENT"] = temp.replace("\n","  ") #put comments back in
-    return(header)
 
 
-def make_tsv(header,items):
-    with open('metadata.tsv',"wb") as csvfile:    #create a file called metadata.tsv for the output
-        writer = csv.DictWriter(csvfile,fieldnames=items,delimiter= "\t")  #set up the writer, header fields, and delimiter
-        writer.writeheader() # write the headers to the file
-        [writer.writerow({k:str(image[k]) for k in items}) for image in header]
+def make_tsv(header, items, outputfname):
+    with open(outputfname + ".tsv", "wb") as csvfile:  # create a file called metadata.tsv for the output
+        # set up the writer, header fields, and delimiter
+        writer = csv.DictWriter(csvfile, fieldnames=items, delimiter="\t")
+        writer.writeheader()  # write the headers to the file
+        [writer.writerow({k: str(image[k]) for k in items}) for image in header]
 
 
-def build_json(total_dic):
-    with open("metadata.json",'w') as jsonfile: #builds json file of metadata not sorted by VIMTYPE
-        json.dump(total_dic,jsonfile, separators=(',',':'),indent=4)
+def build_json(total_dic, outputfname):
+    with open(outputfname + ".json", 'w') as jsonfile:  # builds json file of metadata not sorted by VIMTYPE
+        json.dump(total_dic, jsonfile, separators=(',', ':'), indent=4)
 
 
-def sort_list(ls):
-    #sort filenames into dictionary by VIMTYPE
-    dic = {"SCIENCE":[],"DARK":[]}
-    [dic["SCIENCE"].append(i["FILENAME"]) if i["VIMTYPE"] == "SCIENCE" else dic["DARK"].append(i["FILENAME"]) for i in ls]
-    return(dic)
+def sort_dic(total_dic):
+    # sort total_dic into dictionary by VIMTYPE
+    sorted_dic = {"SCIENCE": [], "DARK": []}
+    [sorted_dic["SCIENCE"].append(total_dic[i]["FILENAME"]) if total_dic[i]["VIMTYPE"] == "SCIENCE"
+     else sorted_dic["DARK"].append(total_dic[i]["FILENAME"]) for i in total_dic]
+    return sorted_dic
 
 
-def clean_dic(sorted_dic,total_dic):
-    cleaned_dic = {'SCIENCE':[],"DARK":sorted_dic["DARK"]}
-    for image in sorted_dic["SCIENCE"]:  #Search dictionary built by my other script
+def clean_dic(sorted_dic, total_dic):
+    cleaned_dic = {'SCIENCE': [], "DARK": sorted_dic["DARK"]}
+    for image in sorted_dic["SCIENCE"]:  # Search dictionary built by my other script
         if total_dic[image]["AOLOOPST"] == "CLOSED":
-            cleaned_dic["SCIENCE"].append(image)   #store names of good files
-    return(cleaned_dic)   #return those names
+            cleaned_dic["SCIENCE"].append(image)  # store names of good files
+    return cleaned_dic  # return those names
 
 
 def writeListCfg(lst, cfgname):
@@ -99,10 +93,10 @@ def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename
                   config=None, medianNorm=False, medianDark=False):
     print("Running DarkMaster")
 
-    global img_path, darkmaster
+    global darkmaster
 
     # Write dark images to config file.
-    darks = [img_path+'/'+image for image in image_dict['DARK']]
+    darks = [image_path + '/' + image for image in image_dict['DARK']]
     writeListCfg(darks, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
@@ -127,6 +121,7 @@ def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename
     print cmd
     system(cmd)
     return 1
+
 
 def prependToFilename(filename, prepending):
     """
@@ -209,16 +204,16 @@ def getShifts(img, fileshifts):  # TODOr
 
 
 def runProcess(call):
-
+    print call
     os.system(call)
     return 1
 
 
-def subtractAndCenter(image_dict, masterdark, shifts_file):
+def subtractAndCenter(image_path, image_dict, masterdark, shifts_file):
     global max_processes
     print("Subtracting and Centering")
     # Build list of science images to process.
-    sciences = image_dict['SCIENCE']
+    sciences = [image_path + '/' + image for image in image_dict['SCIENCE']]
     # Load shift values from file to memory.
     fileshifts = loadShifts(shifts_file)
     # Define necessary variables.
@@ -227,11 +222,14 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
     ccmds = []
     couts = []
 
+    failures = 0
     # Build up commands for each science image.
     for img in sciences:
         # Get norm and shift values.
         tnorm, bnorm = getNorms(img)
-        xshift, yshift = getShifts(img, fileshifts)
+        xshift, yshift = getShifts(os.path.basename(img), fileshifts)
+        if xshift == 0 and yshift == 0:
+            failures += 1
 
         # Build subtraction task.
         ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
@@ -244,14 +242,23 @@ def subtractAndCenter(image_dict, masterdark, shifts_file):
         # centerings[img] = {'cmd': cn_cmd, 'out': cn_out}
         ccmds.append(cn_cmd)
         couts.append(cn_out)
-
+    print len(sciences)
+    print failures
     # Execute subtraction tasks (parallel).
-    sub_pool = mp.Pool(processes=max_processes)
-    sub_pool.map(runProcess, scmds)
+    # sub_pool = mp.Pool(processes=max_processes)
+    # print max_processes
+    # sub_pool.map(runProcess, scmds)
+
+    # Execute subtraction tasks (serial).
+    for c in scmds:
+        runProcess(c)
 
     # Execute centering tasks (parallel).
-    cent_pool = mp.Pool(processes=max_processes)
-    cent_pool.map(runProcess, ccmds)
+    # cent_pool = mp.Pool(processes=max_processes)
+    # cent_pool.map(runProcess, ccmds)
+
+    for c in ccmds:
+        runProcess(c)
 
     # Return list of final filenames.
     return couts
