@@ -21,20 +21,19 @@ Returns
         for line in dat_file:
             img_norm_data = line.split()
             timestamps.append(img_norm_data[0][4:24])
-            bottom_norms.append(img_norm_data[1])
-            top_norms.append(img_norm_data[2])
-
-    window = numpy.ones(int(size)) / float(size)
+            bottom_norms.append(float(img_norm_data[1]))
+            top_norms.append(float(img_norm_data[2]))
 
     # Initial smoothing
-    bottom_norm_avgs = np.convolve(bottom_norms, window, 'same')
-    top_norm_avgs = np.convolve(top_norms, window, 'same')
+    window = np.ones(int(size)) / float(size)
+    bottom_norm_avgs = np.convolve(bottom_norms, window, 'valid')
+    top_norm_avgs = np.convolve(top_norms, window, 'valid')
 
     # If the size is even, then we need to smooth the smoothed values
     if size % 2 == 0:
-        window2 = numpy.ones(int(size//2)) / float(size//2)
-        bottom_norm_avgs = np.convolve(bottom_norms, window2, 'same')
-        top_norm_avgs = np.convolve(top_norms, window2, 'same')
+        window = np.ones(2) / float(2)
+        bottom_norm_avgs = np.convolve(bottom_norm_avgs, window, 'valid')
+        top_norm_avgs = np.convolve(top_norm_avgs, window, 'valid')
 
     return {
         "smoothed_btm_norms": bottom_norm_avgs, 
