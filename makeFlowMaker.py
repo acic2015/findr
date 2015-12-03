@@ -17,7 +17,7 @@ def createWorkflow(pairs):
    
 # Creates the lines required for the makeflow file based on the provided pairs
 def createPair(dark, science):
-    filename = science.replace(".", "_modified.")
+    filename = "dsub_" + science
     requirements = dark + " " + science + " fitssub"
     command = "\tfitssub -i " + science + " -r " + dark + " > " + filename
     return filename + ": " + requirements + "\n" + command + "\n\n"
