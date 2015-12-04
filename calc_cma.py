@@ -13,6 +13,9 @@ def calc_cma(filename, size):
     Returns
         dict
     """
+    timestamps = []
+    bottom_norms = []
+    top_norms = []
 
     with open(filename) as dat_file:
         for line in dat_file:
