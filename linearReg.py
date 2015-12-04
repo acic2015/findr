@@ -13,7 +13,7 @@ def main():
     f = open('norms.dat', 'r')
     for line in f:
         words = line.split(' ')
-        timestamps.append(words[0][4:24])
+        timestamps.append(words[0][4:20])
         bottom_norms.append(words[1])
         top_norms.append(words[2])
 
