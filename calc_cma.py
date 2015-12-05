@@ -41,25 +41,15 @@ def calc_cma(filename, size):
         bottom_norm_avgs = np.convolve(bottom_norm_avgs, window, 'same')
         top_norm_avgs = np.convolve(top_norm_avgs, window, 'same')
 
-    bottom_norm_mappings = {}
-    top_norm_mappings = {}
-
     result = []
-
     for i in range(len(image_names)):
         result.append({
             "sci_filename": image_names[i],
             "timestamp": timestamps[i],
             "smoothed_btm_norm": bottom_norm_avgs[i],
-            "smoothed_top_norm": bottom_norm_avgs[i]
+            "smoothed_top_norm": top_norm_avgs[i]
         })
-        #bottom_norm_mappings[image_names[i]] = bottom_norm_avgs[i]
-        #top_norm_mappings[image_names[i]] = top_norm_avgs[i]
 
-    #return {
-    #    "smoothed_btm_norms": bottom_norm_mappings,
-    #    "smoothed_top_norms": top_norm_mappings
-    #}
     return result
 
 
