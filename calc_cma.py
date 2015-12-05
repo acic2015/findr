@@ -1,4 +1,4 @@
-
+__author__ = 'Alby Chaj and Alex Frank'
 import numpy as np
 import datetime as dt
 import time
@@ -54,7 +54,19 @@ def calc_cma(filename, size):
 
 
 def shift_cma(norm_filename, smoothed_sciences):
+    """
+    This function adjusts the science smoothed norm values based on the norm values
+    of the dark images.
 
+    Parameters
+        norm_filename (str) -- name of dat file containing list of FITS filenames for dark images and
+            the norm values for the image's top and bottom amplifiers
+        smoothed_sciences (list) -- the returned result of calc_cma
+
+    Returns
+        dict of the form:
+        { sci_filename: { "bottom_norm": smoothed and scaled norm value, "top_norm": smoothed and scaled norm value } }
+    """
     dark_filenames = []
     dark_timestamps = []
     dark_bottom_norms = []
@@ -68,6 +80,7 @@ def shift_cma(norm_filename, smoothed_sciences):
             dark_bottom_norms.append(float(dark_image_data[1]))
             dark_top_norms.append(float(dark_image_data[2]))
 
+    # convert all timestamps to seconds since epoch
     dark_time_in_seconds = []
     for t in dark_timestamps:
         year = t[0:4]
@@ -140,5 +153,16 @@ def shift_cma(norm_filename, smoothed_sciences):
     return result
 
 
-def main(sci_filename, dark_filename, size):
+def main(sci_filename, size, dark_filename):
+    """
+    This is a wrapper for calc_cma and shift_cma
+
+    Parameters
+        "sci_filename" is calc_cma's "filename" parameter
+        "size" is calc_cma's "size" parameter
+        "dark_filename" is shift_cma's "norm_filename" parameter
+
+    Returns
+        dict result from shift_cma
+    """
     return shift_cma(dark_filename, calc_cma(sci_filename, size))
