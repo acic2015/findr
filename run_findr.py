@@ -84,17 +84,13 @@ def main(argv):
     print("Running DarkMaster...")
     findr_lib.runDarkmaster(fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn)
 
-    # Calculate shifts
-    #smooth_window = 20
-    #fshifts = findr_lib.shift_cma(darklist_fn, findr_lib.calc_cma(scinorms_fn, smooth_window))
-
     #  run subtractAndCenter
     print("Running SubtractAndCenter...")
-    cent_dsub_files = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
-                                                  masterdark_fn, norm_fn, science_norms, smooth_window,
-                                                  file_shifts)
+    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
+                                                                   masterdark_fn, norm_fn, science_norms, smooth_window,
+                                                                   file_shifts)
 
-     # TODO Klip-reduce
+    # TODO Klip-reduce
 
     # return a dictionary of lists of good filenames sorted by type
     return cleaned_dic

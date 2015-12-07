@@ -371,6 +371,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
             yshift = 0
             fail_files.append(img_name)  # TODO: Check this works best with name, not path
             fail_count += 1
+            continue  # Skip remaining task
 
         # Build subtraction task.
         ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
@@ -401,7 +402,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
         runProcess(c)
 
     # Return list of final filenames.
-    return couts
+    return couts, fail_files
 
 
 # def getShifts(img, fileshifts):  # AKB REMOVED 12/7/15 - Bundled into subtractAndCenter
