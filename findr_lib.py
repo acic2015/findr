@@ -302,7 +302,7 @@ def shift_cma(norm_filename, smoothed_sciences):
                 found = 1
             j += 1
         deltas.append({
-            "bottom": smoothed_sciences[j]["smoothed_bottom_norm"] - dark_bottom_norms[i],
+            "bottom": smoothed_sciences[j]["smoothed_btm_norm"] - dark_bottom_norms[i],
             "top": smoothed_sciences[j]["smoothed_top_norm"] - dark_top_norms[i]
         })
 
