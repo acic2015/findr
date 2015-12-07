@@ -1,6 +1,8 @@
 __author__ = 'asherkhb'
 from os import system
-import config_writers
+
+from depriciated import config_writers
+
 
 def runDarkmaster(image_dict, darklist_filename, masterdark_filename, norm_filename,
                   bot_xo=None, bot_xf=None, bot_yo=None, bot_yf=None,
