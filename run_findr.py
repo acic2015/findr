@@ -31,15 +31,18 @@ def main(argv):
     fitscent = config.get("findr", "fitscent_path")
     outputfname = config.get("findr", "outputfname")
 
+    # AKB Added 12/7/15: more config values.
     smooth_window = int(config.get("findr", "smooth_window"))
     science_norms = config.get("findr", "science_norms")
+    darklist_fn = config.get("findr", "darklist_filename")
+    masterdark_fn = config.get("findr", "masterdark_filename")
+    norm_fn = config.get("findr", "darknorms_filename")
 
     #  Hopefully this will go away soon
     findr_lib.set_config_vals(max_processes=max_processes, file_shifts=file_shifts,
                               darkmaster=darkmaster, darksub=darksub,
                               fitscent=fitscent, smooth_window=smooth_window, science_norms=science_norms)
 
-    darklist_fn, masterdark_fn, norm_fn = "darks.list", "masterdark.fits", "norm.dat"
 
     if not (os.path.isfile(outputfname + ".json") and os.path.isfile(outputfname + ".tsv")):
         #  get files in dir if they are .fits
