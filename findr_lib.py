@@ -311,7 +311,7 @@ def shift_cma(norm_filename, smoothed_sciences):
     j = 0
     for i in range(len(dark_time_in_seconds)):
         found = 0
-        while found == 0 & i < len(dark_time_in_seconds) - 1:  #AKB Added to escape IndexError
+        while found == 0 and i < len(dark_time_in_seconds) - 1:  #AKB Added to escape IndexError
             if abs(dark_time_in_seconds[i] - sci_time_in_seconds[j]) < abs(dark_time_in_seconds[i+1] - sci_time_in_seconds[j]):
                 result[smoothed_sciences[j]["sci_filename"]] = {  #TODO
                     "bottom_norm": smoothed_sciences[j]["smoothed_btm_norm"] - deltas[i]["bottom"],
