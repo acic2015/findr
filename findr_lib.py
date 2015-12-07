@@ -367,8 +367,6 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
             yshift = fileshifts[img_name]['y']
         except:
             print "Warning (subtractAndCenter): %s not found in shifts_file" % str(img_name)
-            xshift = 0
-            yshift = 0
             fail_files.append(img_name)  # TODO: Check this works best with name, not path
             fail_count += 1
             continue  # Skip remaining task
