@@ -31,12 +31,15 @@ def main(argv):
     fitscent = config.get("findr", "fitscent_path")
     outputfname = config.get("findr", "outputfname")
 
+    smooth_window = config.get("findr", "smooth_window")
+    science_norms = config.get("findr", "science_norms")
+
     #  Hopefully this will go away soon
     findr_lib.set_config_vals(max_processes=max_processes, file_shifts=file_shifts,
                               darkmaster=darkmaster, darksub=darksub,
-                              fitscent=fitscent)
+                              fitscent=fitscent, smooth_window=smooth_window, science_norms=science_norms)
 
-    darklist_fn, masterdark_fn, norm_fn = "darks.list", "mastedark.fits", "norm.dat"
+    darklist_fn, masterdark_fn, norm_fn = "darks.list", "masterdark.fits", "norm.dat"
 
     if not (os.path.isfile(outputfname + ".json") and os.path.isfile(outputfname + ".tsv")):
         #  get files in dir if they are .fits
@@ -77,16 +80,21 @@ def main(argv):
     #  remove science files from metadata dictionary if AOLOOPST is OPEN
     cleaned_dic = findr_lib.clean_dic(sorted_dic, total_dic)
 
-    #  Commented out while testing on my windows environment
-    #  #  run master dark with
-    #  print("Running DarkMaster...")
-    #  findr_lib.runDarkmaster(fits_path, cleaned_dic,darklist_fn,masterdark_fn,norm_fn)
-    # 
-    #  #  run subtractAndCenter
-    #  print("Running SubtractAndCenter...")
-    #  cent_dsub_files = findr_lib.subtractAndCenter(fits_path, cleaned_dic,masterdark_fn,findr_lib.file_shifts)
-    # 
-    #  # TODO Klip-reduce
+    #  run darkmaster
+    print("Running DarkMaster...")
+    findr_lib.runDarkmaster(fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn)
+
+    # Calculate shifts
+    #smooth_window = 20
+    #fshifts = findr_lib.shift_cma(darklist_fn, findr_lib.calc_cma(scinorms_fn, smooth_window))
+
+    #  run subtractAndCenter
+    print("Running SubtractAndCenter...")
+    cent_dsub_files = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
+                                                  masterdark_fn, norm_fn, science_norms, smooth_window,
+                                                  file_shifts)
+
+     # TODO Klip-reduce
 
     # return a dictionary of lists of good filenames sorted by type
     return cleaned_dic
