@@ -31,7 +31,7 @@ def main(argv):
     fitscent = config.get("findr", "fitscent_path")
     outputfname = config.get("findr", "outputfname")
 
-    smooth_window = config.get("findr", "smooth_window")
+    smooth_window = int(config.get("findr", "smooth_window"))
     science_norms = config.get("findr", "science_norms")
 
     #  Hopefully this will go away soon
@@ -89,6 +89,8 @@ def main(argv):
     cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
                                                                    masterdark_fn, norm_fn, science_norms, smooth_window,
                                                                    file_shifts)
+    # AKB Added for Debugging
+    print "ERRORS IN: " + ','.join(cent_dsub_fails)
 
     # TODO Klip-reduce
 
