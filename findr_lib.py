@@ -261,13 +261,13 @@ def shift_cma(norm_filename, smoothed_sciences):
     # convert all timestamps to seconds since epoch
     dark_time_in_seconds = []
     for t in dark_timestamps:
-        year = t[0:4]
-        month = t[4:6]
-        day = t[6:8]
-        hours = t[8:10]
-        minutes = t[10:12]
-        seconds = t[12:14]
-        partial_seconds = t[14:20]
+        year = int(t[0:4])
+        month = int(t[4:6])
+        day = int(t[6:8])
+        hours = int(t[8:10])
+        minutes = int(t[10:12])
+        seconds = int(t[12:14])
+        partial_seconds = int(t[14:20])
 
         dark_time = dt.datetime(year, month, day, hours, minutes, seconds)
         dark_time = time.mktime(dark_time.timetuple()) + partial_seconds*(10**(-6))
@@ -277,13 +277,13 @@ def shift_cma(norm_filename, smoothed_sciences):
 
     sci_time_in_seconds = []
     for j in range(len(smoothed_sciences)):
-        year = smoothed_sciences[j].timestamp[0:4]
-        month = smoothed_sciences[j].timestamp[4:6]
-        day = smoothed_sciences[j].timestamp[6:8]
-        hours = smoothed_sciences[j].timestamp[8:10]
-        minutes = smoothed_sciences[j].timestamp[10:12]
-        seconds = smoothed_sciences[j].timestamp[12:14]
-        partial_seconds = smoothed_sciences[j].timestamp[14:20]
+        year = int(smoothed_sciences[j].timestamp[0:4])
+        month = int(smoothed_sciences[j].timestamp[4:6])
+        day = int(smoothed_sciences[j].timestamp[6:8])
+        hours = int(smoothed_sciences[j].timestamp[8:10])
+        minutes = int(smoothed_sciences[j].timestamp[10:12])
+        seconds = int(smoothed_sciences[j].timestamp[12:14])
+        partial_seconds = int(smoothed_sciences[j].timestamp[14:20])
 
         sci_time = dt.datetime(year, month, day, hours, minutes, seconds)
         sci_time = time.mktime(sci_time.timetuple()) + partial_seconds*(10**(-6))
