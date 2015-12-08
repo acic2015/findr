@@ -17,12 +17,17 @@ NModes = ''
 outputFile = ''
 
 # Sweep
-qualityThreshold = [0.45668, 0.45225, 0.44800, 0.44444, 0.43868]
-includeRefNum = [250,500,750,1000,100000]
-minDPx = [0,.5,1.,1.5,2.0]
-minRadius = [35, 37.5, 40, 42.5]
-maxRadius = [55, 65, 75, 85, 95]
+qualityThreshold_sweep = [0.45668, 0.45225, 0.44800, 0.44444, 0.43868]
+includeRefNum_sweep = [250,500,750,1000,100000]
+minDPx_sweep = [0,.5,1.,1.5,2.0]
+minRadius_sweep = [35, 37.5, 40, 42.5]
+maxRadius_sweep = [55, 65, 75, 85, 95]
 
+qualityThreshold = ''
+includeRefNum = ''
+minDPx = ''
+minRadius = ''
+maxRadius = ''
 
 template = ("directory=" + directory + "\n"
             "prefix=" + prefix + "\n"
