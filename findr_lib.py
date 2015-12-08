@@ -159,7 +159,7 @@ def spawnDsubCmd(science_img, dark_img, norm_bot=None, norm_top=None):
     return dsub_cmd, dsub_out
 
 
-def spawnCentCmd(subtracted_img, xshift, yshift):
+def spawnCentCmd(subtracted_img, xshift, yshift):  # TODO: Make imSize specifiable
     """
     Spawn a fitscent command.
     :param subtracted_img: Dark subtracted science image.
@@ -168,7 +168,7 @@ def spawnCentCmd(subtracted_img, xshift, yshift):
     :return: fitscent_command, centered_filename
     """
     cent_out = prependToFilename(subtracted_img, 'cent_')
-    cent_opts = '--input=%s --x=%s --y=%s --output=%s' % (subtracted_img, str(xshift), str(yshift), cent_out)
+    cent_opts = '--input=%s --imSize=256 --x=%s --y=%s --output=%s' % (subtracted_img, str(xshift), str(yshift), cent_out)
     cent_cmd = fitscent + ' ' + cent_opts
     return cent_cmd, cent_out
 
