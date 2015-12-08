@@ -87,13 +87,24 @@ def main(argv):
     print("Running DarkMaster...")
     findr_lib.runDarkmaster(fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn)
 
+    # sort norms
+    print("Sorting Norms")
+    sorted_scinorms = science_norms + '.sorted'
+    sorted_drknorms = norm_fn + '.sorted'
+    os.system("sort -k1,1 %s > %s" % (science_norms, sorted_scinorms))
+    os.system("sort -k1,1 %s > %s" % (norm_fn, sorted_drknorms))
+
     #  run subtractAndCenter
     print("Running SubtractAndCenter...")
+    # cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
+    #                                                                masterdark_fn, norm_fn, science_norms, smooth_window,
+    #                                                                file_shifts)
     cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
-                                                                   masterdark_fn, norm_fn, science_norms, smooth_window,
-                                                                   file_shifts)
-    # AKB Added for Debugging
-    print "ERRORS IN: " + ','.join(cent_dsub_fails)
+                                                                   masterdark_fn, sorted_drknorms, sorted_scinorms,
+                                                                   smooth_window, file_shifts)
+
+    #  AKB Added for Debugging
+    #print "ERRORS IN: " + ','.join(cent_dsub_fails)
 
     # TODO Klip-reduce
 
