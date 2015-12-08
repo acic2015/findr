@@ -204,7 +204,7 @@ def calc_cma(filename, size):
         for line in dat_file:
             img_norm_data = line.split()
             image_names.append(img_norm_data[0])
-            timestamps.append(img_norm_data[0][4:20])
+            timestamps.append(img_norm_data[0][4:24])
             bottom_norms.append(float(img_norm_data[1]))
             top_norms.append(float(img_norm_data[2]))
 
@@ -254,7 +254,7 @@ def shift_cma(norm_filename, smoothed_sciences):
         for line in dark_norm_file:
             dark_image_data = line.split()
             dark_filenames.append(dark_image_data[0])
-            dark_timestamps.append(dark_image_data[0][4:20])
+            dark_timestamps.append(dark_image_data[0][4:24])
             dark_bottom_norms.append(float(dark_image_data[1]))
             dark_top_norms.append(float(dark_image_data[2]))
 
@@ -267,7 +267,7 @@ def shift_cma(norm_filename, smoothed_sciences):
         hours = int(t[8:10])
         minutes = int(t[10:12])
         seconds = int(t[12:14])
-        partial_seconds = int(t[14:20])
+        partial_seconds = float(t[14:20])
 
         dark_time = dt.datetime(year, month, day, hours, minutes, seconds)
         dark_time = time.mktime(dark_time.timetuple()) + partial_seconds*(10**(-6))
@@ -284,7 +284,7 @@ def shift_cma(norm_filename, smoothed_sciences):
         hours = int(t[8:10])
         minutes = int(t[10:12])
         seconds = int(t[12:14])
-        partial_seconds = int(t[14:20])
+        partial_seconds = float(t[14:20])
 
         sci_time = dt.datetime(year, month, day, hours, minutes, seconds)
         sci_time = time.mktime(sci_time.timetuple()) + partial_seconds*(10**(-6))
