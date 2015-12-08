@@ -297,7 +297,7 @@ def shift_cma(norm_filename, smoothed_sciences):
     j = 0
     for i in range(len(dark_time_in_seconds)):  # AKB Added to escape IndexError
         found = 0
-        while found == 0 and j < len(sci_time_in_seconds) - 1:
+        while found == 0 and j < (len(sci_time_in_seconds) - 1):
             if abs(sci_time_in_seconds[j] - dark_time_in_seconds[i]) < abs(sci_time_in_seconds[j + 1] - dark_time_in_seconds[i]):
                 found = 1
             j += 1
@@ -311,7 +311,7 @@ def shift_cma(norm_filename, smoothed_sciences):
     j = 0
     for i in range(len(dark_time_in_seconds)):  # AKB Added to escape IndexError
         found = 0
-        while found == 0 and i < len(dark_time_in_seconds) - 1:
+        while found == 0 and i < (len(dark_time_in_seconds) - 1) and j <= (len(sci_time_in_seconds) - 1):
             if abs(dark_time_in_seconds[i] - sci_time_in_seconds[j]) < abs(dark_time_in_seconds[i+1] - sci_time_in_seconds[j]):
                 result[smoothed_sciences[j]["sci_filename"]] = {  #TODO
                     "bottom_norm": smoothed_sciences[j]["smoothed_btm_norm"] - deltas[i]["bottom"],
@@ -322,7 +322,7 @@ def shift_cma(norm_filename, smoothed_sciences):
                 found = 1
 
     # special case for the last dark and the last few sciences
-    while j < len(sci_time_in_seconds):
+    while j < (len(sci_time_in_seconds) - 1):
         result[smoothed_sciences[j]["sci_filename"]] = {  #TODO
             "bottom_norm": smoothed_sciences[j]["smoothed_btm_norm"] - deltas[len(deltas) - 1]["bottom"],
             "top_norm": smoothed_sciences[j]["smoothed_top_norm"] - deltas[len(deltas) - 1]["top"]
