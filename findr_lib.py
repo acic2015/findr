@@ -354,13 +354,20 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
     couts = []
 
     fail_count = 0
-    fail_files = []
+    fail_files = {"missing_norms": [], "missing_shifts": []}
     # Build up commands for each science image.
     for img in sciences:
         img_name = os.path.basename(img)
+
         # Get norm values.
-        tnorm = fnorms[img_name]["top_norm"]
-        bnorm = fnorms[img_name]["bottom_norm"]
+        try:
+            tnorm = fnorms[img_name]["top_norm"]
+            bnorm = fnorms[img_name]["bottom_norm"]
+        except:
+            print "Warning (subtractAndCenter): %s not found in norms" % str(img_name)
+            fail_files["missing_norms"].append(img_name)
+            fail_count += 1
+            continue
 
         # Get shift values
         try:
@@ -368,7 +375,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
             yshift = fileshifts[img_name]['y']
         except:
             print "Warning (subtractAndCenter): %s not found in shifts_file" % str(img_name)
-            fail_files.append(img_name)  # TODO: Check this works best with name, not path
+            fail_files["missing_shifts"].append(img_name)
             fail_count += 1
             continue  # Skip remaining task
 
@@ -401,6 +408,7 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
         runProcess(c)
 
     # Return list of final filenames.
+    print fail_files
     return couts, fail_files
 
 
