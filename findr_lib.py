@@ -14,14 +14,14 @@ __author__ = "Daniel Kapellusch, Asher Baltzell, Alex Frank, Alby Chaj"
 
 
 # Hopefully this will be gone soon
-def set_config_vals(**optional_args):
-    global max_processes, file_shifts, darkmaster, darksub, fitscent
-
-    max_processes = optional_args["max_processes"]
-    file_shifts = optional_args["file_shifts"]
-    darkmaster = optional_args["darkmaster"]
-    darksub = optional_args["darksub"]
-    fitscent = optional_args["fitscent"]
+# def set_config_vals(**optional_args):
+#     global max_processes, file_shifts, darkmaster, darksub, fitscent
+#
+#     max_processes = optional_args["max_processes"]
+#     file_shifts = optional_args["file_shifts"]
+#     darkmaster = optional_args["darkmaster"]
+#     darksub = optional_args["darksub"]
+#     fitscent = optional_args["fitscent"]
 
 
 def get_metadata_and_sort(image):
@@ -91,14 +91,14 @@ def writeDictCfg(dct, cfgname):
     return cfgname
 
 
-def runDarkmaster(image_path, image_dict, darklist_filename, masterdark_filename, norm_filename,
+def runDarkmaster(darkmaster, image_path, image_dict, darklist_filename, masterdark_filename, norm_filename,
                   bot_xo=None, bot_xf=None, bot_yo=None, bot_yf=None,
                   top_xo=None, top_xf=None, top_yo=None, top_yf=None,
                   width=None, height=None,
-                  config=None, medianNorm=False, medianDark=False):
+                  config=None, medianNorm=True, medianDark=True):
     print("Running DarkMaster")
 
-    global darkmaster
+    #global darkmaster
 
     # Write dark images to config file.
     darks = [image_path + '/' + image for image in image_dict['DARK']]
@@ -140,7 +140,7 @@ def prependToFilename(filename, prepending):
     return filename.replace(b, n)
 
 
-def spawnDsubCmd(science_img, dark_img, norm_bot=None, norm_top=None):
+def spawnDsubCmd(darksub, science_img, dark_img, norm_bot=None, norm_top=None):
     """
     Spawn a darksub command.
     :param science_img: Science image filename or path/to/filename.
@@ -159,7 +159,7 @@ def spawnDsubCmd(science_img, dark_img, norm_bot=None, norm_top=None):
     return dsub_cmd, dsub_out
 
 
-def spawnCentCmd(subtracted_img, xshift, yshift):  # TODO: Make imSize specifiable
+def spawnCentCmd(fitscent, subtracted_img, xshift, yshift):  # TODO: Make imSize specifiable
     """
     Spawn a fitscent command.
     :param subtracted_img: Dark subtracted science image.
@@ -338,7 +338,8 @@ def runProcess(call):
     return 1
 
 
-def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, smoothwindow, shifts_file):
+def subtractAndCenter(darksub, fitscent, image_path, image_dict,
+                      masterdark, darknorms, scinorms, smoothwindow, shifts_file):
     print("Subtracting and Centering")
     # Build list of science images to process.
     sciences = [image_path + '/' + image for image in image_dict['SCIENCE']]
@@ -380,14 +381,12 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
             continue  # Skip remaining task
 
         # Build subtraction task.
-        ds_cmd, ds_out = spawnDsubCmd(img, masterdark, norm_bot=bnorm, norm_top=tnorm)
-        # subtractions[img] = {'cmd': ds_cmd, 'out': ds_out}
+        ds_cmd, ds_out = spawnDsubCmd(darksub, img, masterdark, norm_bot=bnorm, norm_top=tnorm)
         scmds.append(ds_cmd)
         souts.append(ds_out)
 
         # Build centering task.
-        cn_cmd, cn_out = spawnCentCmd(ds_out, xshift=xshift, yshift=yshift)
-        # centerings[img] = {'cmd': cn_cmd, 'out': cn_out}
+        cn_cmd, cn_out = spawnCentCmd(fitscent, ds_out, xshift=xshift, yshift=yshift)
         ccmds.append(cn_cmd)
         couts.append(cn_out)
 
@@ -407,21 +406,5 @@ def subtractAndCenter(image_path, image_dict, masterdark, darknorms, scinorms, s
     for c in ccmds:
         runProcess(c)
 
-    # Return list of final filenames.
-    print fail_files
+    # Return list of final filenames and failed files.
     return couts, fail_files
-
-
-# def getShifts(img, fileshifts):  # AKB REMOVED 12/7/15 - Bundled into subtractAndCenter
-#     """
-#
-#     :param img: image to get shift values
-#     :return: xshift, yshift
-#     """
-#     try:
-#         xs = fileshifts[img]['x']
-#         ys = fileshifts[img]['y']
-#         return xs, ys
-#     except KeyError:
-#         print "Warning (getShifts): %s not found in fileshifts" % str(img)
-#         return 0, 0
