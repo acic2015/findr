@@ -24,7 +24,7 @@ def main(argv):
     config = ConfigParser()
     config.read(config_file)
 
-    max_processes = config.get("findr", "max_processes")
+    max_processes = int(config.get("findr", "max_processes"))
     file_shifts = config.get("findr", "fileshifts")
     darkmaster = config.get("findr", "darkmaster_path")
     darksub = config.get("findr", "darksub_path")
