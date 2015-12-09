@@ -49,7 +49,7 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
             for entry in all_tasks:
                 # Specify command and expected output file.
                 cfg = entry["cfg"]
-                outf = entry["outf"]
+                outf = entry["outf"] + "001"
                 command = "%s -c %s" % (klipreduce, cfg)
                 # Add job to all tasks log.
                 alltasks.write("%s\t%s\t%s\n" % (command, cfg, outf))
