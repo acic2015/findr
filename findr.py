@@ -30,18 +30,21 @@ def main(argv):
     darksub = config.get("findr", "darksub_path")
     fitscent = config.get("findr", "fitscent_path")
     outputfname = config.get("findr", "outputfname")
-
-    # AKB Added 12/7/15: more config values.
     smooth_window = int(config.get("findr", "smooth_window"))
     science_norms = config.get("findr", "science_norms")
     darklist_fn = config.get("findr", "darklist_filename")
     masterdark_fn = config.get("findr", "masterdark_filename")
     norm_fn = config.get("findr", "darknorms_filename")
 
+    try:
+        alt_darknorms = config.get("findr", "alt_darknorms")
+    except Exception:
+        alt_darknorms = ''
+
     #  Hopefully this will go away soon
-    findr_lib.set_config_vals(max_processes=max_processes, file_shifts=file_shifts,
-                              darkmaster=darkmaster, darksub=darksub,
-                              fitscent=fitscent, smooth_window=smooth_window, science_norms=science_norms)
+    # findr_lib.set_config_vals(max_processes=max_processes, file_shifts=file_shifts,
+    #                           darkmaster=darkmaster, darksub=darksub,
+    #                           fitscent=fitscent, smooth_window=smooth_window, science_norms=science_norms)
 
 
     if not (os.path.isfile(outputfname + ".json") and os.path.isfile(outputfname + ".tsv")):
@@ -72,7 +75,8 @@ def main(argv):
         findr_lib.build_json(total_dic, outputfname)
 
     else:  # else don't bother extracting all that stuff just read it in from the json that is present
-        print("Found .json and .tsv files of specified outputfname, reading this instead...")
+        print("NOTICE: Found .json and .tsv files of specified outputfname, reading this instead...")
+        print("Remove these files, or change outputfname in FINDR config to recalculate these values.")
         with open(outputfname + ".json") as json_data:
             total_dic = json.load(json_data)
 
@@ -85,26 +89,31 @@ def main(argv):
 
     #  run darkmaster
     print("Running DarkMaster...")
-    findr_lib.runDarkmaster(fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn)
+    findr_lib.runDarkmaster(darkmaster, fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn,
+                            medianDark=True, medianNorm=True)
 
-    # sort norms
+    # sort norms  # TODO: Python sort, not system sort.
     print("Sorting Norms")
     sorted_scinorms = science_norms + '.sorted'
-    sorted_drknorms = norm_fn + '.sorted'
     os.system("sort -k1,1 %s > %s" % (science_norms, sorted_scinorms))
-    os.system("sort -k1,1 %s > %s" % (norm_fn, sorted_drknorms))
+
+    if alt_darknorms != '':
+        sorted_drknorms = alt_darknorms + '.sorted'
+        os.system("sort -k1,1 %s > %s" % (alt_darknorms, sorted_drknorms))
+    else:
+        sorted_drknorms = norm_fn + '.sorted'
+        os.system("sort -k1,1 %s > %s" % (norm_fn, sorted_drknorms))
 
     #  run subtractAndCenter
     print("Running SubtractAndCenter...")
-    # cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
-    #                                                                masterdark_fn, norm_fn, science_norms, smooth_window,
-    #                                                                file_shifts)
-    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(fits_path, cleaned_dic,
+    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts)
-
-    #  AKB Added for Debugging
-    #print "ERRORS IN: " + ','.join(cent_dsub_fails)
+    cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
+    if cent_dsub_fail_count > 0:
+        print("WARNING (subtractAndCenter): %s failures" % str(cent_dsub_fail_count))
+        print("-- Missing Norms: %s\n-- Missing Shifts: %s"
+              % (str(len(cent_dsub_fails["missing_norms"]))), str(len(cent_dsub_fails["missing_shifts"])))
 
     # TODO Klip-reduce
 
