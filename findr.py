@@ -29,6 +29,7 @@ def main(argv):
     darkmaster = config.get("findr", "darkmaster_path")
     darksub = config.get("findr", "darksub_path")
     fitscent = config.get("findr", "fitscent_path")
+    klipreduce = config.get("findr", "klipreduce_path")
     outputfname = config.get("findr", "outputfname")
     smooth_window = int(config.get("findr", "smooth_window"))
     science_norms = config.get("findr", "science_norms")

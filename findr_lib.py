@@ -395,15 +395,19 @@ def subtractAndCenter(darksub, fitscent, max_processes, image_path, image_dict,
     sub_pool = mp.Pool(processes=max_processes)
     sub_pool.map(runProcess, scmds)
 
-    # Execute subtraction tasks (serial).
+    # Execute subtraction tasks (serial) - Deprecated, but can be brought back if multiprocessing causes problems.
     # for c in scmds:
     #     runProcess(c)
+
+    # TODO: Validate Results
+    # Run darkmaster on dark-subtracted frames in 10x10 corners (use a subset or it'll take forever)
+    # Plot the norms, should be ~0 with noise.
 
     # Execute centering tasks (parallel).
     cent_pool = mp.Pool(processes=max_processes)
     cent_pool.map(runProcess, ccmds)
 
-    # Execute centering tasks (serial).
+    # Execute centering tasks (serial) - Deprecated, but can be brought back if multiprocessing causes problems.
     # for c in ccmds:
     #     runProcess(c)
 
