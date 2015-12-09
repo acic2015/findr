@@ -313,7 +313,7 @@ def shift_cma(norm_filename, smoothed_sciences):
         found = 0
         while found == 0 and i < (len(dark_time_in_seconds) - 1) and j < len(sci_time_in_seconds):
             if abs(dark_time_in_seconds[i] - sci_time_in_seconds[j]) < abs(dark_time_in_seconds[i+1] - sci_time_in_seconds[j]):
-                result[smoothed_sciences[j]["sci_filename"]] = {  #TODO
+                result[smoothed_sciences[j]["sci_filename"]] = {  
                     "bottom_norm": smoothed_sciences[j]["smoothed_btm_norm"] - deltas[i]["bottom"],
                     "top_norm": smoothed_sciences[j]["smoothed_top_norm"] - deltas[i]["top"]
                 }
@@ -323,7 +323,7 @@ def shift_cma(norm_filename, smoothed_sciences):
 
     # special case for the last dark and the last few sciences
     while j < len(sci_time_in_seconds):
-        result[smoothed_sciences[j]["sci_filename"]] = {  #TODO
+        result[smoothed_sciences[j]["sci_filename"]] = {
             "bottom_norm": smoothed_sciences[j]["smoothed_btm_norm"] - deltas[len(deltas) - 1]["bottom"],
             "top_norm": smoothed_sciences[j]["smoothed_top_norm"] - deltas[len(deltas) - 1]["top"]
         }
