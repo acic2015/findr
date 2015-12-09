@@ -2,6 +2,7 @@ import os
 import csv
 import json
 from os import path, system
+import multiprocessing as mp
 
 # For CMA
 import numpy as np
@@ -338,7 +339,7 @@ def runProcess(call):
     return 1
 
 
-def subtractAndCenter(darksub, fitscent, image_path, image_dict,
+def subtractAndCenter(darksub, fitscent, max_processes, image_path, image_dict,
                       masterdark, darknorms, scinorms, smoothwindow, shifts_file):
     print("Subtracting and Centering")
     # Build list of science images to process.
@@ -391,20 +392,20 @@ def subtractAndCenter(darksub, fitscent, image_path, image_dict,
         couts.append(cn_out)
 
     # Execute subtraction tasks (parallel).
-    # sub_pool = mp.Pool(processes=max_processes)
-    # sub_pool.map(runProcess, scmds)
+    sub_pool = mp.Pool(processes=max_processes)
+    sub_pool.map(runProcess, scmds)
 
     # Execute subtraction tasks (serial).
-    for c in scmds:
-        runProcess(c)
+    # for c in scmds:
+    #     runProcess(c)
 
     # Execute centering tasks (parallel).
-    # cent_pool = mp.Pool(processes=max_processes)
-    # cent_pool.map(runProcess, ccmds)
+    cent_pool = mp.Pool(processes=max_processes)
+    cent_pool.map(runProcess, ccmds)
 
     # Execute centering tasks (serial).
-    for c in ccmds:
-        runProcess(c)
+    # for c in ccmds:
+    #     runProcess(c)
 
     # Return list of final filenames and failed files.
     return couts, fail_files

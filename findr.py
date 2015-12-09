@@ -106,14 +106,14 @@ def main(argv):
 
     #  run subtractAndCenter
     print("Running SubtractAndCenter...")
-    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, fits_path, cleaned_dic,
+    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, max_processes, fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts)
     cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
     if cent_dsub_fail_count > 0:
         print("WARNING (subtractAndCenter): %s failures" % str(cent_dsub_fail_count))
         print("-- Missing Norms: %s\n-- Missing Shifts: %s"
-              % (str(len(cent_dsub_fails["missing_norms"]))), str(len(cent_dsub_fails["missing_shifts"])))
+              % (str(len(cent_dsub_fails["missing_norms"])), str(len(cent_dsub_fails["missing_shifts"]))))
 
     # TODO Klip-reduce
 
