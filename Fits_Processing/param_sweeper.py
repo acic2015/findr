@@ -72,7 +72,6 @@ for param_set in permutations:
                 "maxRadius=" + str(param_set[2]) + "\n"
                 "includeRefNum="+str(param_set[4]) +"\n"
                 "Nmodes="+str(Nmodes)[1:-1] +"\n"
-                "qualityFile=file_strehl.txt \n"
                 "#thresholdOnly=true" + "\n"
                 "\n"
                 "#Negative Fake Planets" + "\n"
