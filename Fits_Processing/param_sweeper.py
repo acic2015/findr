@@ -94,4 +94,4 @@ for param_set in permutations:
     with open("log_file.txt",'a+') as log:
         log.writelines(("output_"+ str(fake) +str(current_file_num)+ ".fits "," output_"+ str(fake) +str(current_file_num)+ ".conf\n"))
 
-print(counter)
+print(str(counter)+" Config files generated.")
