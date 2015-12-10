@@ -17,6 +17,8 @@ NModes = ''
 outputFile = ''
 
 # Sweep
+fakePlanetDir_sweep = ['fp1', 'fp2', 'fp3', 'fp4', 'fp5', 'fp6', 'fp7', 'fp8', 'fp9', 'fp10', 'fp11', 'fp12',
+                        'fp13', 'fp14', 'fp15', 'fp16', 'fp17', 'fp18', 'fp19', 'fp20', 'fp21', 'fp22', 'fp23']
 qualityThreshold_sweep = [0.45668, 0.45225, 0.44800, 0.44444, 0.43868]
 includeRefNum_sweep = [250,500,750,1000,100000]
 minDPx_sweep = [0,.5,1.,1.5,2.0]
@@ -29,39 +31,47 @@ minDPx = ''
 minRadius = ''
 maxRadius = ''
 
-template = ("directory=" + directory + "\n"
-            "prefix=" + prefix + "\n"
-            "\n"
-            "imSize=" + imSize + "\n"
-            "\n"
-            "qualityFile=" + qualityFile + "\n"
-            "qualityThreshold=" + qualityThreshold + "\n"
-            "#Pre-Processing Filters\n"
-            "preProcess_azUSM_azW=" + preProcess_azUSM_azW + "\n"
-            "preProcess_azUSM_radW=" + preProcess_azUSM_radW + "\n"
-            "maskFile=" + maskFile + "\n"
-            "preProcess_gaussUSM_fwhm=" + preProcess_gaussUSM_fwhm + "\n"
-            "#KLIP Parameters\n"
-            "includeRefNum=" + includeRefNum + "\n"
-            "minDPx=" + minDPx + "\n"
-            "excludeMethod=" + excludeMethod + "\n"
-            "Nmodes=" + NModes + "\n"
-            "minRadius=" + minRadius + "\n"
-            "maxRadius=" + maxRadius + "\n"
-            "\n"
-            "outputFile=" + outputFile + "\n")
+i = 0
+for fakePlanetDir in fakePlanetDir_sweep:
+    for qualityThreshold in qualityThreshold_sweep:
+        for includeRefNum in includeRefNum_sweep:
+            for minDPx in minDPx_sweep:
+                for minRadius in minRadius_sweep:
+                    for maxRadius in maxRadius_sweep:
+                        i += 1
+                        template = ("directory=/data/" + fakePlanetDir + "\n"
+                                    "prefix=" + prefix + "\n"
+                                    "\n"
+                                    "imSize=" + imSize + "\n"
+                                    "\n"
+                                    "qualityFile=" + qualityFile + "\n"
+                                    "qualityThreshold=" + str(qualityThreshold) + "\n"
+                                    "#Pre-Processing Filters\n"
+                                    "preProcess_azUSM_azW=" + preProcess_azUSM_azW + "\n"
+                                    "preProcess_azUSM_radW=" + preProcess_azUSM_radW + "\n"
+                                    "maskFile=" + maskFile + "\n"
+                                    "preProcess_gaussUSM_fwhm=" + preProcess_gaussUSM_fwhm + "\n"
+                                    "#KLIP Parameters\n"
+                                    "includeRefNum=" + includeRefNum + "\n"
+                                    "minDPx=" + minDPx + "\n"
+                                    "excludeMethod=" + excludeMethod + "\n"
+                                    "Nmodes=" + NModes + "\n"
+                                    "minRadius=" + minRadius + "\n"
+                                    "maxRadius=" + maxRadius + "\n"
+                                    "\n"
+                                    "outputFile=" + outputFile + "\n")
 
-
+print i
 
 # Parameters to sweep:
-# ​
+
 # qualityThreshold:  0.45668, 0.45225 0.44800, 0.44444, 0.43868
 # includeRefNum: 250,500,750,1000,100000
 # ---> This limits the size of the matrix to NxN.  Can be smart, if there are less than 750 images after thresholding, then you don't need to try the 1000 case, but should always do one larger than the number of images.
 # minDPx : 0,.5,1.,1.5,2.0
 # minRadius : 35, 37.5, 40, 42.5
 # maxRadius : 55, 65, 75, 85, 95
-# ​
+
 # This is not a sweep, but set up the nModes vector as:
 # nModes=5,10,15,20,40, (i-1)+20, . . . 0.5*number of images
 

@@ -107,7 +107,8 @@ def main(argv):
 
     #  run subtractAndCenter
     print("Running SubtractAndCenter...")
-    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, max_processes, fits_path, cleaned_dic,
+    cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, darkmaster, max_processes,
+                                                                   fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts)
     cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
