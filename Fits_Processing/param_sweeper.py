@@ -32,7 +32,7 @@ if not os.path.exists('output'):
         os.makedirs('output')
 
 directory = "/data/"
-counter = 0
+counter = 0.0
 current_file_num = 0
 
 print("Starting batch: 1")
