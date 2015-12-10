@@ -9,7 +9,7 @@ This script will perform the parameter sweep and generate
 
 def getRefNum(imageCount):
     if imageCount +1 > 1000:
-        return [250,500,750,1000,1000]
+        return [250,500,750,1000,10000]
     if imageCount + 1 > 750:
         return [250,500,750,1000]
     if imageCount + 1 > 500:
@@ -50,18 +50,19 @@ for param_set in permutations:
     fake = fakePA[int(math.ceil(counter/2500))-1]
 
     template = ("directory=" + str(directory)+"fp"+str(int(math.ceil(counter/2500))) + "\n"
-                "prefix=" + "cent" + "\n"
+                "prefix=" + "pre" + "\n"         # change if preprocessing
                 "outputFile=output_"+ str(fake) +str(current_file_num)+ ".fits\n"
-                "exactFName=True\n"
+                "exactFName=true\n"
                 "imsize=" + "265" + "\n"
-                "qualityFile=file_strehl.txt" + "\n"
+                "qualityFile=/data/klipreduce/pre_file_strehl.txt" + "\n" # change if preprocessing
                 "qualityThreshold="+str(param_set[5]) + "\n"
                 "\n"
                 "#Pre-Processing Filter" + "\n"
                 "preProcess_azUSM_azW = 0.5" + "\n"
                 "preProcess_azUSM_radW = 10." + "\n"
-                 "maskFile=bpicb_20141103_04_mask_256.fits" + "\n"
+                "maskFile=/data/klipreduce/bpicb_20141103_04_mask_256.fits" + "\n"
                 "preProcess_gaussUSM_fwhm = 10." + "\n"
+                "skipPreProcess=true\n"       # change if preprocesssing
                 "#preProcess_outputPrefix=/path/to/output/pre_\n"
                 "#preProcess_only=true\n"
                 "\n"
@@ -72,12 +73,11 @@ for param_set in permutations:
                 "maxRadius=" + str(param_set[2]) + "\n"
                 "includeRefNum="+str(param_set[4]) +"\n"
                 "Nmodes="+str(Nmodes)[1:-1] +"\n"
-                "qualityFile=file_strehl.txt \n"
                 "#thresholdOnly=true" + "\n"
                 "\n"
                 "#Negative Fake Planets" + "\n"
-                "fakeFileName=bpicb_zp_20151103_04_to_be_scaled_by_strehl.fits" + "\n"
-                "fakeScaleFileName=file_strehl.txt" + "\n"
+                "fakeFileName=/data/klipreduce/bpicb_zp_20151103_04_to_be_scaled_by_strehl.fits" + "\n"
+                "fakeScaleFileName=/data/klipreduce/pre_file_strehl.txt" + "\n"  # change if preprocessing
                 "fakeSep=47.22,47.22" + "\n"
                 "fakePA=212.31," + str(fake) + "\n"
                 "fakeContrast="+ str("-5e-5,5e-5") + "\n"
@@ -87,11 +87,11 @@ for param_set in permutations:
                 "sigmaThreshold=5"
                 )
 
-    confFileName = "output/output_"+ str(fake) +"_"+str(current_file_num) + '.conf'
+    confFileName = "output/output_"+ str(fake) +"_"+str(current_file_num) + '.conf'  # change if preprocessing
     configurationFile = open(confFileName, 'w+')
     configurationFile.write(template)
     configurationFile.close()
     with open("log_file.txt",'a+') as log:
-        log.writelines(("output_"+ str(fake) +str(current_file_num)+ ".fits "," output_"+ str(fake) +str(current_file_num)+ ".conf\n"))
+        log.writelines(("output_"+ str(fake) +str(current_file_num)+ ".fits "," output_"+ str(fake) +str(current_file_num)+ ".conf\n")) # change if preprocessing
 
-print(counter)
+print(str(counter)+" Configs written")
