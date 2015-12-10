@@ -87,12 +87,12 @@ for param_set in permutations:
                 "sigmaThreshold=5"
                 )
 
-    confFileName = "output/output_"+ str(fake) +"_"+str(current_file_num) + '.conf'  # change if preprocessing
+    confFileName = "output/output_"+ str(fake)+str(current_file_num) + '.conf'  # change if preprocessing
     configurationFile = open(confFileName, 'w+')
     configurationFile.write(template)
     configurationFile.close()
     with open("log_file.txt",'a+') as log:
-        log.writelines(("output_"+ str(fake) +str(current_file_num)+ ".fits "," output_"+ str(fake) +str(current_file_num)+ ".conf\n")) # change if preprocessing
+        log.writelines(("output_"+str(fake) +str(current_file_num)+ ".conf ","output_"+ str(fake) +str(current_file_num)+ ".fits\n")) # change if preprocessing
 
 print(str(counter)+" Config files generated.")
 
