@@ -403,7 +403,7 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     # Run darkmaster on dark-subtracted frames in 10x10 corners (use a subset or it'll take forever)
     # Plot the norms, should be ~0 with noise.
     thinby = 100
-    print("Generating confirmation files (thinned by every %s image..." % str(thinby))
+    print("Generating confirmation files (thinned by every %s image)..." % str(thinby))
     conf_dict = {"DARK": [souts[i] for i in xrange(0, len(souts), thinby)]}
     runDarkmaster(darkmaster, image_path, conf_dict, "confirmation.list", "confirmation.fits", "confirmation.norms",
                   bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
