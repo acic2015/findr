@@ -96,9 +96,10 @@ def main(argv):
             yield l[i:i+n]
 
     scis = cleaned_dic["SCIENCE"]
-    subsci = [chunks(scis, 100)]
+    #subsci = [chunks(scis, 100)]
+    subsci = [scis[i:i+n] for i in xrange(0, len(scis), 100)]
     norm_subsets = []
-    print subsci
+    print subsci[0]
     exit()
     i=0
     for subset in subsci:
