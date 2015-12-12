@@ -88,9 +88,33 @@ def main(argv):
     #  remove science files from metadata dictionary if AOLOOPST is OPEN
     cleaned_dic = findr_lib.clean_dic(sorted_dic, total_dic)
 
+    #  get science image norms
+    # TODO: Every 100 science images run darkmaster, merge into
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in xrange(0, len(l), n):
+            yield l[i:i+n]
+
+    scis = cleaned_dic["SCIENCE"]
+    subsci = chunks(scis, 100)
+    norm_subsets = []
+    print subsci[1]
+    exit()
+    i=0
+    for subset in subsci:
+        listname = '' + i + '.fits'
+        fitsname = '' + i + '.fits'
+        normname = '' + i + '.norms'
+        findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
+                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
+                                medianNorm=True, medianDark=True)
+    # TODO: MERGE ALL NORMS INTO "science_norms"
+
+
     #  run darkmaster
-    print("Running DarkMaster...")
-    findr_lib.runDarkmaster(darkmaster, fits_path, cleaned_dic, darklist_fn,masterdark_fn, norm_fn,
+    print("Generating master dark...")
+    darksl = [fits_path + '/' + image for image in cleaned_dic['DARK']]
+    findr_lib.runDarkmaster(darkmaster, fits_path, darksl, darklist_fn,masterdark_fn, norm_fn,
                             medianDark=True, medianNorm=True)
 
     # sort norms  # TODO: Python sort, not system sort.

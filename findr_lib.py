@@ -92,7 +92,7 @@ def writeDictCfg(dct, cfgname):
     return cfgname
 
 
-def runDarkmaster(darkmaster, image_path, image_dict, darklist_filename, masterdark_filename, norm_filename,
+def runDarkmaster(darkmaster, image_path, imgs, darklist_filename, masterdark_filename, norm_filename,
                   bot_xo=None, bot_xf=None, bot_yo=None, bot_yf=None,
                   top_xo=None, top_xf=None, top_yo=None, top_yf=None,
                   width=None, height=None,
@@ -102,8 +102,7 @@ def runDarkmaster(darkmaster, image_path, image_dict, darklist_filename, masterd
     #global darkmaster
 
     # Write dark images to config file.
-    darks = [image_path + '/' + image for image in image_dict['DARK']]
-    writeListCfg(darks, darklist_filename)
+    writeListCfg(imgs, darklist_filename)
     # Fill out required parameters
     options = '--fileListFile=%s --darkFileName=%s --normFileName=%s' % (darklist_filename,
                                                                          masterdark_filename,
@@ -399,13 +398,13 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     # for c in scmds:
     #     runProcess(c)
 
-    # TODO: Validate Results
-    # Run darkmaster on dark-subtracted frames in 10x10 corners (use a subset or it'll take forever)
+    # Validate Results
+    # Run darkmaster on subset of dark-subtracted frames in 10x10 corners.
     # Plot the norms, should be ~0 with noise.
     thinby = 100
     print("Generating confirmation files (thinned by every %s image)..." % str(thinby))
-    conf_dict = {"DARK": [os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]}
-    runDarkmaster(darkmaster, image_path, conf_dict, "confirmation.list", "confirmation.fits", "confirmation.norms",
+    conf_list = [os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]
+    runDarkmaster(darkmaster, image_path, conf_list, "confirmation.list", "confirmation.fits", "confirmation.norms",
                   bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
                   medianNorm=True, medianDark=True)
 
