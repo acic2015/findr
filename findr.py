@@ -98,7 +98,7 @@ def main(argv):
     scis = cleaned_dic["SCIENCE"]
     subsci = [chunks(scis, 100)]
     norm_subsets = []
-    print subsci[1]
+    print subsci
     exit()
     i=0
     for subset in subsci:
