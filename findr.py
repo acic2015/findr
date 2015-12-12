@@ -98,7 +98,7 @@ def main(argv):
     scis = cleaned_dic["SCIENCE"]
     #subsci = [chunks(scis, 100)]
     subsetsize = 100
-    subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
+    subsci = [fits_path + '/' + scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     norm_subsets = []
     print subsci[0]
     exit()
