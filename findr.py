@@ -98,12 +98,12 @@ def main(argv):
     scis = cleaned_dic["SCIENCE"]
     #subsci = [chunks(scis, 100)]
     subsetsize = 100
-    subsci = [fits_path + '/' + scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
-    norm_subsets = []
-    print subsci[0]
-    exit()
+    subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     i=0
     for subset in subsci:
+        subset = [fits_path + '/' + image for image in subset]
+        print subset
+        exit()
         listname = '' + i + '.fits'
         fitsname = '' + i + '.fits'
         normname = '' + i + '.norms'
