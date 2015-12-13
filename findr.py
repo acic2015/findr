@@ -36,6 +36,7 @@ def main(argv):
     darklist_fn = config.get("findr", "darklist_filename")
     masterdark_fn = config.get("findr", "masterdark_filename")
     norm_fn = config.get("findr", "darknorms_filename")
+    imagesize = config.get("findr", "imagesize")
 
     try:
         alt_darknorms = config.get("findr", "alt_darknorms")
@@ -101,7 +102,7 @@ def main(argv):
         normname = 'scinorm_' + str(i) + '.norms'
         cornernorms.append(normname)
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
-                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
+                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                                 medianNorm=True, medianDark=True)
     print cornernorms
     exit()
