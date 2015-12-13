@@ -91,60 +91,38 @@ def main(argv):
     cleaned_dic = findr_lib.clean_dic(sorted_dic, total_dic)
 
     #  get science image norms
-    # TODO: Every 100 science images run darkmaster, merge into
-    print("Calculating norm values from science image 10x10px corners...")
-    scis = cleaned_dic["SCIENCE"]
-    subsetsize = 1000
-    subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
-    cornernorms = []
-    for i, subset in enumerate(subsci):
-        subset = [fits_path + '/' + image for image in subset]
-        listname = 'scilist_' + str(i) + '.list'
-        fitsname = 'scifits_' + str(i) + '.fits'
-        normname = 'scinorm_' + str(i) + '.norms'
-        cornernorms.append(normname)
-        findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
-                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
-                                medianNorm=True, medianDark=True)
-    print("Consolidating science norms into 'all_science_norms.norms'...")
-    with open('all_science_norms.norms', 'w') as outfile:
-        for fname in cornernorms:
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
-    science_norms = "all_science_norms.norms"
+    print("Getting science norms...")
+    science_norms = findr_lib.getSciNorms(darkmaster, cleaned_dic["SCIENCE"], fits_path, 1000, imagesize, "all_science_norms.norms")
 
-    #  run darkmaster
+    #  Generate master dark
     print("Generating master dark...")
     darksl = [fits_path + '/' + image for image in cleaned_dic['DARK']]
     findr_lib.runDarkmaster(darkmaster, fits_path, darksl, darklist_fn,masterdark_fn, norm_fn,
                             medianDark=True, medianNorm=True)
 
-    # sort norms  # TODO: Python sort, not system sort.
+    # Sort norms  # TODO: Python sort, not system sort.
     print("Sorting norm files...")
-    sorted_scinorms = science_norms + '.sorted'
-    os.system("sort -k1,1 %s > %s" % (science_norms, sorted_scinorms))
+    sorted_scinorms = findr_lib.normSort(science_norms)
 
     if alt_darknorms != '':
-        sorted_drknorms = alt_darknorms + '.sorted'
-        os.system("sort -k1,1 %s > %s" % (alt_darknorms, sorted_drknorms))
+        sorted_drknorms = findr_lib.normSort(alt_darknorms)
     else:
-        sorted_drknorms = norm_fn + '.sorted'
-        os.system("sort -k1,1 %s > %s" % (norm_fn, sorted_drknorms))
+        sorted_drknorms = findr_lib.normSort(norm_fn)
 
-    #  run subtractAndCenter
+    # Run subtractAndCenter
     print("Running SubtractAndCenter...")
     cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, darkmaster, max_processes,
                                                                    fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts, imagesize)
+    # Print failure summary
     cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
     if cent_dsub_fail_count > 0:
         print("WARNING (subtractAndCenter): %s failures" % str(cent_dsub_fail_count))
         print("-- Missing Norms: %s\n-- Missing Shifts: %s"
               % (str(len(cent_dsub_fails["missing_norms"])), str(len(cent_dsub_fails["missing_shifts"]))))
 
-    # return a dictionary of lists of good filenames sorted by type
+    # Return a dictionary of lists of good filenames sorted by type
     return cleaned_dic
 
 

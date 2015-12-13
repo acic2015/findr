@@ -366,7 +366,7 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
             tnorm = fnorms[img_name]["top_norm"]
             bnorm = fnorms[img_name]["bottom_norm"]
         except:
-            print "Warning (subtractAndCenter): %s not found in norms" % str(img_name)
+            #print "Warning (subtractAndCenter): %s not found in norms" % str(img_name)
             fail_files["missing_norms"].append(img_name)
             fail_count += 1
             continue
@@ -376,7 +376,7 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
             xshift = fileshifts[img_name]['x']
             yshift = fileshifts[img_name]['y']
         except:
-            print "Warning (subtractAndCenter): %s not found in shifts_file" % str(img_name)
+            #print "Warning (subtractAndCenter): %s not found in shifts_file" % str(img_name)
             fail_files["missing_shifts"].append(img_name)
             fail_count += 1
             continue  # Skip remaining task
@@ -395,15 +395,11 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     sub_pool = mp.Pool(processes=max_processes)
     sub_pool.map(runProcess, scmds)
 
-    # Execute subtraction tasks (serial) - Deprecated, but can be brought back if multiprocessing causes problems.
-    # for c in scmds:
-    #     runProcess(c)
-
     # Validate Results
     # Run darkmaster on subset of dark-subtracted frames in 10x10 corners.
-    # Plot the norms, should be ~0 with noise.
+    # When plotting the norms, should be ~0 with noise, and top/bottom should be close..
     thinby = 100
-    print("Generating confirmation files (thinned by every %s image)..." % str(thinby))
+    print("...generating confirmation files (thinned by every %s image)" % str(thinby))
     conf_list = [os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]
     runDarkmaster(darkmaster, image_path, conf_list, "confirmation.list", "confirmation.fits", "confirmation.norms",
                   bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imsize-11, top_yf=imsize-1,
@@ -413,9 +409,38 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     cent_pool = mp.Pool(processes=max_processes)
     cent_pool.map(runProcess, ccmds)
 
-    # Execute centering tasks (serial) - Deprecated, but can be brought back if multiprocessing causes problems.
-    # for c in ccmds:
-    #     runProcess(c)
-
     # Return list of final filenames and failed files.
     return couts, fail_files
+
+
+def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, normfilename):
+    print("...calculating norm values from science image 10x10px corners in %s image batches" % str(subset_size))
+    subsci = [sciences_list[i:i+subset_size] for i in xrange(0, len(sciences_list), subset_size)]
+    cornernorms = []
+    for i, subset in enumerate(subsci):
+        subset = [img_path + '/' + image for image in subset]
+        listname = 'scilist_' + str(i) + '.list'
+        fitsname = 'scifits_' + str(i) + '.fits'
+        normname = 'scinorm_' + str(i) + '.norms'
+        cornernorms.append(normname)
+        findr_lib.runDarkmaster(darkmaster, img_path, subset, listname, fitsname, normname,
+                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
+                                medianNorm=True, medianDark=True)
+    print("...consolidating science norms into '%s'" % normfilename)
+    with open(normfilename, 'w') as outfile:
+        for fname in cornernorms:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
+
+    print("...removing temporary norm files")
+    for f in cornernorms:
+        os.remove(f)
+
+    return normfilename
+
+def normSort(normfile):
+    sorted_norms = normfile + '.sorted'
+    print("...sorting norm file (%s -> %s)" % normfile, sorted_norms)
+    os.system("sort -k1,1 %s > %s" % (normfile, sorted_norms))
+    return sorted_norms
