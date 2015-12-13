@@ -91,7 +91,7 @@ def main(argv):
     #  get science image norms
     # TODO: Every 100 science images run darkmaster, merge into
     scis = cleaned_dic["SCIENCE"]
-    subsetsize = 100
+    subsetsize = 200
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     cornernorms = []
     for i, subset in enumerate(subsci):

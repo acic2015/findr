@@ -108,7 +108,8 @@ def runDarkmaster(darkmaster, image_path, imgs, darklist_filename, masterdark_fi
                                                                          masterdark_filename,
                                                                          norm_filename)
     # Fill out bottom/top normalization coordinates, if present.
-    if bot_xo and bot_xf and bot_yo and bot_yf and top_xo and top_xf and top_yo and top_yf:
+    if bot_xo != None and bot_xf != None and bot_yo != None and bot_yf != None \
+            and top_xo != None and top_xf != None and top_yo != None and top_yf != None:
         options += ' --bot_xo=%s --bot_xf=%s --bot_yo=%s --bot_yf=%s' % (str(bot_xo), str(bot_xf),
                                                                          str(bot_yo), str(bot_yf))
         options += ' --top_xo=%s --top_xf=%s --top_yo=%s --top_yf=%s' % (str(top_xo), str(top_xf),
