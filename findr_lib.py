@@ -340,7 +340,7 @@ def runProcess(call):
 
 
 def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, image_dict,
-                      masterdark, darknorms, scinorms, smoothwindow, shifts_file):
+                      masterdark, darknorms, scinorms, smoothwindow, shifts_file, imsize):
     print("Subtracting and Centering")
     # Build list of science images to process.
     sciences = [image_path + '/' + image for image in image_dict['SCIENCE']]
@@ -406,7 +406,7 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     print("Generating confirmation files (thinned by every %s image)..." % str(thinby))
     conf_list = [os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]
     runDarkmaster(darkmaster, image_path, conf_list, "confirmation.list", "confirmation.fits", "confirmation.norms",
-                  bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
+                  bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imsize-11, top_yf=imsize-1,
                   medianNorm=True, medianDark=True)
 
     # Execute centering tasks (parallel).

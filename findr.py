@@ -36,7 +36,7 @@ def main(argv):
     darklist_fn = config.get("findr", "darklist_filename")
     masterdark_fn = config.get("findr", "masterdark_filename")
     norm_fn = config.get("findr", "darknorms_filename")
-    imagesize = int(config.get("findr", "imagesize"))
+    imagesize = int(config.get("findr", "fullimage_size"))
 
     try:
         alt_darknorms = config.get("findr", "alt_darknorms")
@@ -95,7 +95,11 @@ def main(argv):
     subsetsize = 200
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     cornernorms = []
+    e = 0
     for i, subset in enumerate(subsci):
+        e += 1
+        if e > 5:
+            break
         subset = [fits_path + '/' + image for image in subset]
         listname = 'scilist_' + str(i) + '.list'
         fitsname = 'scifits_' + str(i) + '.fits'
@@ -104,10 +108,14 @@ def main(argv):
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
                                 bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                                 medianNorm=True, medianDark=True)
-    print cornernorms
+    #print cornernorms
+    #exit()
+    with open('all_science_norms.norms', 'w') as outfile:
+        for fname in cornernorms:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
     exit()
-    # TODO: MERGE ALL NORMS INTO "science_norms"
-
 
     #  run darkmaster
     print("Generating master dark...")
@@ -132,14 +140,12 @@ def main(argv):
     cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, darkmaster, max_processes,
                                                                    fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
-                                                                   smooth_window, file_shifts)
+                                                                   smooth_window, file_shifts, imagesize)
     cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
     if cent_dsub_fail_count > 0:
         print("WARNING (subtractAndCenter): %s failures" % str(cent_dsub_fail_count))
         print("-- Missing Norms: %s\n-- Missing Shifts: %s"
               % (str(len(cent_dsub_fails["missing_norms"])), str(len(cent_dsub_fails["missing_shifts"]))))
-
-    # TODO Klip-reduce
 
     # return a dictionary of lists of good filenames sorted by type
     return cleaned_dic
