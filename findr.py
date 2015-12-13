@@ -90,26 +90,21 @@ def main(argv):
 
     #  get science image norms
     # TODO: Every 100 science images run darkmaster, merge into
-    def chunks(l, n):
-        """Yield successive n-sized chunks from l."""
-        for i in xrange(0, len(l), n):
-            yield l[i:i+n]
-
     scis = cleaned_dic["SCIENCE"]
-    #subsci = [chunks(scis, 100)]
     subsetsize = 100
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
-    i=0
+    cornernorms = []
     for subset in subsci:
         subset = [fits_path + '/' + image for image in subset]
-        print subset
-        exit()
-        listname = '' + i + '.fits'
-        fitsname = '' + i + '.fits'
-        normname = '' + i + '.norms'
+        listname = 'scilist_' + i + '.list'
+        fitsname = 'scifits_' + i + '.fits'
+        normname = 'scinorm_' + i + '.norms'
+        cornernorms.append(normname)
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
                                 bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
                                 medianNorm=True, medianDark=True)
+    print cornernorms
+    exit()
     # TODO: MERGE ALL NORMS INTO "science_norms"
 
 
