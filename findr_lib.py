@@ -423,9 +423,9 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
         fitsname = 'scifits_' + str(i) + '.fits'
         normname = 'scinorm_' + str(i) + '.norms'
         cornernorms.append(normname)
-        findr_lib.runDarkmaster(darkmaster, img_path, subset, listname, fitsname, normname,
-                                bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
-                                medianNorm=True, medianDark=True)
+        runDarkmaster(darkmaster, img_path, subset, listname, fitsname, normname,
+                      bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
+                      medianNorm=True, medianDark=True)
     print("...consolidating science norms into '%s'" % normfilename)
     with open(normfilename, 'w') as outfile:
         for fname in cornernorms:
