@@ -97,7 +97,7 @@ def runDarkmaster(darkmaster, image_path, imgs, darklist_filename, masterdark_fi
                   top_xo=None, top_xf=None, top_yo=None, top_yf=None,
                   width=None, height=None,
                   config=None, medianNorm=True, medianDark=True):
-    print("Running DarkMaster")
+    print("...Running DarkMaster")
 
     #global darkmaster
 

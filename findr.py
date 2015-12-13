@@ -83,14 +83,16 @@ def main(argv):
             total_dic = json.load(json_data)
 
     # sort metadata into dictionary of lists based on VIMTYPE
-    print("Sorting header metadata")
+    print("Sorting header metadata...")
     sorted_dic = findr_lib.sort_dic(total_dic)
 
     #  remove science files from metadata dictionary if AOLOOPST is OPEN
+    print("Cleaning dictionary...")
     cleaned_dic = findr_lib.clean_dic(sorted_dic, total_dic)
 
     #  get science image norms
     # TODO: Every 100 science images run darkmaster, merge into
+    print("Calculating norm values from science image 10x10px corners...")
     scis = cleaned_dic["SCIENCE"]
     subsetsize = 1000
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
@@ -104,7 +106,7 @@ def main(argv):
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
                                 bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                                 medianNorm=True, medianDark=True)
-    print("Consolidating norms into 'all_science_norms.norms'...")
+    print("Consolidating science norms into 'all_science_norms.norms'...")
     with open('all_science_norms.norms', 'w') as outfile:
         for fname in cornernorms:
             with open(fname) as infile:
@@ -119,7 +121,7 @@ def main(argv):
                             medianDark=True, medianNorm=True)
 
     # sort norms  # TODO: Python sort, not system sort.
-    print("Sorting Norms")
+    print("Sorting norm files...")
     sorted_scinorms = science_norms + '.sorted'
     os.system("sort -k1,1 %s > %s" % (science_norms, sorted_scinorms))
 
