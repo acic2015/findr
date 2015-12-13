@@ -26,7 +26,7 @@ refnum = getRefNum(1001)
 qualityThreshold = [0.45668, 0.45225, 0.44800, 0.44444, 0.43868]
 quality_nums = {0.45668:461,0.45225:614,0.44800:769,0.44444:923,0.43868:1229}
 
-permutations = product(minDPx,minRadius,maxRadius,fakePA,refnum,qualityThreshold)
+permutation = product(fakePA,minDPx,minRadius,maxRadius,refnum,qualityThreshold)
 
 if not os.path.exists('output'):
         os.makedirs('output')
@@ -37,17 +37,17 @@ current_file_num = 0
 
 print("Starting batch: 1")
 
-for param_set in permutations:
+for param_set in permutation:
 
     if current_file_num == 2500:
         print("Starting batch: "+str(int(math.ceil(counter/2500)+1)))
         current_file_num = 0
-
+    print(param_set[0],param_set[1],param_set[2])
     counter+=1
     current_file_num+=1
 
     Nmodes = [5, 10, 15] + [x for x in range(20, quality_nums[param_set[5]] / 2 + 1, 20)]
-    fake = fakePA[int(math.ceil(counter/2500))-1]
+    fake = param_set[0]
 
     template = ("directory=" + str(directory)+"fp"+str(int(math.ceil(counter/2500))) + "\n"
                 "prefix=" + "pre" + "\n"         # change if preprocessing
@@ -67,10 +67,10 @@ for param_set in permutations:
                 "#preProcess_only=true\n"
                 "\n"
                 "#KLIP Parameters" + "\n"
-                "minDPx=" + str(param_set[0]) + "\n"
+                "minDPx=" + str(param_set[1]) + "\n"
                 "excludeMethod=pixel \n"
-                "minRadius=" + str(param_set[1]) + "\n"
-                "maxRadius=" + str(param_set[2]) + "\n"
+                "minRadius=" + str(param_set[2]) + "\n"
+                "maxRadius=" + str(param_set[3]) + "\n"
                 "includeRefNum="+str(param_set[4]) +"\n"
                 "Nmodes="+str(Nmodes)[1:-1] +"\n"
                 "#thresholdOnly=true" + "\n"
