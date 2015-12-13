@@ -94,11 +94,11 @@ def main(argv):
     subsetsize = 100
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     cornernorms = []
-    for subset in subsci:
+    for i, subset in enumerate(subsci):
         subset = [fits_path + '/' + image for image in subset]
-        listname = 'scilist_' + i + '.list'
-        fitsname = 'scifits_' + i + '.fits'
-        normname = 'scinorm_' + i + '.norms'
+        listname = 'scilist_' + str(i) + '.list'
+        fitsname = 'scifits_' + str(i) + '.fits'
+        normname = 'scinorm_' + str(i) + '.norms'
         cornernorms.append(normname)
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
                                 bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=1013, top_yf=1023,
