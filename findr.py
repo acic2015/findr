@@ -36,7 +36,7 @@ def main(argv):
     darklist_fn = config.get("findr", "darklist_filename")
     masterdark_fn = config.get("findr", "masterdark_filename")
     norm_fn = config.get("findr", "darknorms_filename")
-    imagesize = config.get("findr", "imagesize")
+    imagesize = int(config.get("findr", "imagesize"))
 
     try:
         alt_darknorms = config.get("findr", "alt_darknorms")
