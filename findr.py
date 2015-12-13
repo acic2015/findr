@@ -29,10 +29,10 @@ def main(argv):
     darkmaster = config.get("findr", "darkmaster_path")
     darksub = config.get("findr", "darksub_path")
     fitscent = config.get("findr", "fitscent_path")
-    klipreduce = config.get("findr", "klipreduce_path")
+    #klipreduce = config.get("findr", "klipreduce_path")
     outputfname = config.get("findr", "outputfname")
     smooth_window = int(config.get("findr", "smooth_window"))
-    science_norms = config.get("findr", "science_norms")
+    #science_norms = config.get("findr", "science_norms")
     darklist_fn = config.get("findr", "darklist_filename")
     masterdark_fn = config.get("findr", "masterdark_filename")
     norm_fn = config.get("findr", "darknorms_filename")
@@ -92,14 +92,10 @@ def main(argv):
     #  get science image norms
     # TODO: Every 100 science images run darkmaster, merge into
     scis = cleaned_dic["SCIENCE"]
-    subsetsize = 200
+    subsetsize = 1000
     subsci = [scis[i:i+subsetsize] for i in xrange(0, len(scis), subsetsize)]
     cornernorms = []
-    e = 0
     for i, subset in enumerate(subsci):
-        e += 1
-        if e > 5:
-            break
         subset = [fits_path + '/' + image for image in subset]
         listname = 'scilist_' + str(i) + '.list'
         fitsname = 'scifits_' + str(i) + '.fits'
@@ -108,14 +104,13 @@ def main(argv):
         findr_lib.runDarkmaster(darkmaster, fits_path, subset, listname, fitsname, normname,
                                 bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                                 medianNorm=True, medianDark=True)
-    #print cornernorms
-    #exit()
+    print("Consolidating norms into 'all_science_norms.norms'...")
     with open('all_science_norms.norms', 'w') as outfile:
         for fname in cornernorms:
             with open(fname) as infile:
                 for line in infile:
                     outfile.write(line)
-    exit()
+    science_norms = "all_science_norms.norms"
 
     #  run darkmaster
     print("Generating master dark...")
