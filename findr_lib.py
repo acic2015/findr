@@ -441,6 +441,6 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
 
 def normSort(normfile):
     sorted_norms = normfile + '.sorted'
-    print("...sorting norm file (%s -> %s)" % normfile, sorted_norms)
+    print("...sorting norm file (%s -> %s)" % (normfile, sorted_norms))
     os.system("sort -k1,1 %s > %s" % (normfile, sorted_norms))
     return sorted_norms
