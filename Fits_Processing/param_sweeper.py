@@ -2,6 +2,8 @@ __author__ = 'Dkapellusch'
 import math
 import os
 from itertools import product
+from ConfigParser import ConfigParser
+
 '''
 This script will perform the parameter sweep and generate
 57500 config files for use in klip reduce.
@@ -18,13 +20,17 @@ def getRefNum(imageCount):
         return [250,500]
     return [250]
 
-minDPx = [0, .5, 1., 1.5, 2.0]
-minRadius = [35, 37.5, 40, 42.5]
-maxRadius = [55, 65, 75, 85, 95]
-fakePA = [92.0 + x * 10 for x in range(0, 24) if 92.0 + x * 10 != 212.0]
-refnum = getRefNum(1001)
-qualityThreshold = [0.45668, 0.45225, 0.44800, 0.44444, 0.43868]
-quality_nums = {0.45668:461,0.45225:614,0.44800:769,0.44444:923,0.43868:1229}
+config  = ConfigParser()
+config.read("sweeper.cfg")
+
+minDPx = eval(config.get("sweeper","minDPx"))
+minRadius = eval(config.get("sweeper","minRadius"))
+maxRadius = eval(config.get("sweeper","maxRadius"))
+fakePA = eval(config.get("sweeper","fakePA"))
+refnum = getRefNum(int(config.get("sweeper","fileCount")))
+qualityThreshold = eval(config.get("sweeper","qualityThreshold"))
+quality_nums = eval(config.get("sweeper","quality_nums"))
+Nmodes_fun = config.get("sweeper","Nmodes_fun")
 
 permutation = product(fakePA,minDPx,minRadius,maxRadius,refnum,qualityThreshold)
 
@@ -36,22 +42,23 @@ counter = 0.0
 current_file_num = 0
 
 print("Starting batch: 1")
-
 for param_set in permutation:
 
     if current_file_num == 2500:
         print("Starting batch: "+str(int(math.ceil(counter/2500)+1)))
         current_file_num = 0
+<<<<<<< HEAD
+    print([param_set])
+=======
     print(param_set)
+>>>>>>> 641c0d5a238c1855b5f99293ec310ce3c75d150d
     counter+=1
     current_file_num+=1
 
-    Nmodes = [5, 10, 15] + [x for x in range(20, quality_nums[param_set[5]] / 2 + 1, 20)]
-    fake = param_set[0]
-
+    Nmodes = eval(Nmodes_fun)
     template = ("directory=" + str(directory)+"fp"+str(int(math.ceil(counter/2500))) + "\n"
                 "prefix=" + "pre" + "\n"         # change if preprocessing
-                "outputFile=output_"+ str(fake) +str(current_file_num)+ ".fits\n"
+                "outputFile=output_"+ str(param_set[0]) +str(current_file_num)+ ".fits\n"
                 "exactFName=true\n"
                 "imsize=" + "265" + "\n"
                 "qualityFile=/data/klipreduce/pre_file_strehl.txt" + "\n" # change if preprocessing
@@ -79,7 +86,7 @@ for param_set in permutation:
                 "fakeFileName=/data/klipreduce/bpicb_zp_20151103_04_to_be_scaled_by_strehl.fits" + "\n"
                 "fakeScaleFileName=/data/klipreduce/pre_file_strehl.txt" + "\n"  # change if preprocessing
                 "fakeSep=47.22,47.22" + "\n"
-                "fakePA=212.31," + str(fake) + "\n"
+                "fakePA=212.31," + str(param_set[0]) + "\n"
                 "fakeContrast="+ str("-5e-5,5e-5") + "\n"
                 "\n"
                 "#Image combination\n"
@@ -87,12 +94,11 @@ for param_set in permutation:
                 "sigmaThreshold=5"
                 )
 
-    confFileName = "output/output_"+ str(fake)+str(current_file_num) + '.conf'  # change if preprocessing
+    confFileName = "output/output_"+ str(param_set[0])+str(current_file_num) + '.conf'  # change if preprocessing
     configurationFile = open(confFileName, 'w+')
     configurationFile.write(template)
     configurationFile.close()
     with open("log_file.txt",'a+') as log:
-        log.writelines(("output_"+str(fake) +str(current_file_num)+ ".conf ","output_"+ str(fake) +str(current_file_num)+ ".fits\n")) # change if preprocessing
-
+        log.writelines(("output_"+str(param_set[0]) +str(current_file_num)+ ".conf ","output_"+ str(param_set[0]) +str(current_file_num)+ ".fits\n")) # change if preprocessing
 print(str(counter)+" Config files generated.")
 
