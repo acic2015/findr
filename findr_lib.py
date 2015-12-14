@@ -400,7 +400,7 @@ def subtractAndCenter(darksub, fitscent, darkmaster, max_processes, image_path, 
     # When plotting the norms, should be ~0 with noise, and top/bottom should be close..
     thinby = 100
     print("...generating confirmation files (thinned by every %s image)" % str(thinby))
-    conf_list = [os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]
+    conf_list = [image_path + '/' + os.path.basename(souts[i]) for i in xrange(0, len(souts), thinby)]
     runDarkmaster(darkmaster, image_path, conf_list, "confirmation.list", "confirmation.fits", "confirmation.norms",
                   bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imsize-11, top_yf=imsize-1,
                   medianNorm=True, medianDark=True)
