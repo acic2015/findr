@@ -151,5 +151,6 @@ if __name__ == "__main__":
         print("python findr_reduce.py klipReduce try1 configList.list")
         print("-- To resume a previous run:")
         print("python findr_reduce.py klipReduce try2 resume=True resumeLogPrefix='try2'")
+        exit()
     runKlipReduce(sys.argv[1:])
-    print("Findr Complete")
+    print("Reductions Complete")
