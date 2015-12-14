@@ -436,6 +436,8 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
     print("...removing temporary norm files")
     for f in cornernorms:
         os.remove(f)
+        os.remove(f.replace('.norms', '.list'))
+        os.remove(f.replace('.norms', '.fits'))
 
     return normfilename
 
