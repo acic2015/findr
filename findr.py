@@ -56,7 +56,9 @@ def main(argv):
 
     if not (os.path.isfile(outputfname + ".json") and os.path.isfile(outputfname + ".tsv")):
         #  get files in dir if they are .fits
-        fits_lst = [fits_path + "/" + fit for fit in os.listdir(fits_path) if fit.endswith(".fits")]
+        fits_lst = [fits_path + "/" + fit for fit in os.listdir(fits_path) \
+                    if fit.endswith(".fits") \
+                    and not os.path.basename(fit).startswith("cent") and not os.path.basename(fit).startswith("dsub")]
 
         #  get fieldnames from first fits file
         with fits.open(fits_lst[0]) as fits_file:
