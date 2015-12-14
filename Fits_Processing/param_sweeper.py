@@ -47,11 +47,7 @@ for param_set in permutation:
     if current_file_num == 2500:
         print("Starting batch: "+str(int(math.ceil(counter/2500)+1)))
         current_file_num = 0
-<<<<<<< HEAD
-    print([param_set])
-=======
     print(param_set)
->>>>>>> 641c0d5a238c1855b5f99293ec310ce3c75d150d
     counter+=1
     current_file_num+=1
 
