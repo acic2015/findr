@@ -38,6 +38,11 @@ def main(argv):
     norm_fn = config.get("findr", "darknorms_filename")
     imagesize = int(config.get("findr", "fullimage_size"))
 
+    #Load alternative science norms or dark norms files.
+    try:
+        alt_scinorms = config.get("findr", "alt_scinorms")
+    except Exception:
+        alt_scinorms = ''
     try:
         alt_darknorms = config.get("findr", "alt_darknorms")
     except Exception:
@@ -92,7 +97,10 @@ def main(argv):
 
     #  get science image norms
     print("Getting science norms...")
-    science_norms = findr_lib.getSciNorms(darkmaster, cleaned_dic["SCIENCE"], fits_path, 1000, imagesize, "all_science_norms.norms")
+    if alt_scinorms != '':
+        science_norms = alt_scinorms
+    else:
+        science_norms = findr_lib.getSciNorms(darkmaster, cleaned_dic["SCIENCE"], fits_path, 1000, imagesize, "all_science_norms.norms")
 
     #  Generate master dark
     print("Generating master dark...")
