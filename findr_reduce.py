@@ -149,7 +149,7 @@ if __name__ == "__main__":
     if len(program_args) < 3 or len(program_args) > 4:
         print("ERROR (arguments)")
         print("Please specify your klipReduce path "
-              "(usually just 'klipReduce', a prefix for the run, and a configList or resume options.")
+              "(usually just 'klipReduce'), a prefix for the run, and a configList or resume options.")
         print("Syntax:")
         print("-- Launch a new run: python findr_reduce.py <klipReduce path> <run_prefix> <config-and-outputs_list>")
         print("-- Resume a previous run: python findr_reduce.py resume <klipReduce_path> <run_prefix> <resume_prefix>")
