@@ -298,7 +298,7 @@ def shift_cma(norm_filename, smoothed_sciences):
     j = 0
     for i in range(len(dark_time_in_seconds)):  # AKB Added to escape IndexError
         found = 0
-        while found == 0 and j < len(sci_time_in_seconds):
+        while found == 0 and j < (len(sci_time_in_seconds) - 1):
             if abs(sci_time_in_seconds[j] - dark_time_in_seconds[i]) < abs(sci_time_in_seconds[j + 1] - dark_time_in_seconds[i]):
                 found = 1
             j += 1
