@@ -20,8 +20,11 @@ def getRefNum(imageCount):
         return [250,500]
     return [250]
 
+if len(sys.argv)<2:
+    print("Please specify paths to sweeper.cfg and template.cfg")
+    exit()
 config  = ConfigParser()
-config.read("sweeper.cfg")
+config.read(sys.argv[1])
 
 #Define your paramsets for permutations here
 #Define your paramset either here in the form of a list, or as a list in sweeper.cfg
@@ -33,7 +36,7 @@ refnum = getRefNum(int(config.get("sweeper","fileCount")))
 qualityThreshold = eval(config.get("sweeper","qualityThreshold"))
 quality_nums = eval(config.get("sweeper","quality_nums"))
 
-with open("template.cfg",'r') as cfg_file:
+with open(sys.argv[2],'r') as cfg_file:
     template = cfg_file.readlines()
 
 #put the paramset at the end of this permutation line and in your template.cfg put a reference to it in the form of
