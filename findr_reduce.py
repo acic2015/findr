@@ -41,7 +41,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         all_tasks = []
         with open(configList, 'U') as cfgin:
             for line in cfgin:
-                contents = line.rstrip().split('\t')
+                contents = line.rstrip().split()
                 all_tasks.append({"cfg": contents[0], "outf": contents[1]})
 
         # Create, log, and dispatch a task for each config file listed in the configList
@@ -95,7 +95,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             for line in f:
                 fail.append(line.rstrip())
             for line in a:
-                contents = line.rstrip().split('\t')
+                contents = line.rstrip().split()
                 cmd = contents[0]
                 if cmd not in c and cmd not in f:
                     cfg = contents[1]
