@@ -1,1 +1,3 @@
-
+Requires a working installation of mxlib and acic tools.
+    https://bitbucket.org/jaredmales/mxlib
+    https://bitbucket.org/jaredmales/acic
