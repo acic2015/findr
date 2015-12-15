@@ -51,7 +51,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                 cfg = entry["cfg"]
                 #outf = entry["outf"] + "0000.fits"  # This works if you don't have the exactFName flag in klipReduce
                 outf = entry["outf"]
-                command = "%s -c %s" % (klipReduce, cfg)
+                command = "%s -c %s" % (klipReduce, os.path.basename(cfg))
                 # Add job to all tasks log.
                 alltasks.write("%s\t%s\t%s\n" % (command, cfg, outf))
                 # Build task.
