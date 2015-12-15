@@ -13,7 +13,7 @@ __author__ = "Daniel Kapellusch, Asher Baltzell"
 
 def main(argv):
     if not argv:
-        print "findr.py fits_path config_file"
+        print "findr_prepare.py fits_path config_file"
 
     # get path and cfg file name from passed args
     fits_path = argv[0]
@@ -138,4 +138,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    print("Findr Complete")
+    print("Findr Prepare Complete")
