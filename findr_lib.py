@@ -417,12 +417,15 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
     print("...calculating norm values from science image 10x10px corners in %s image batches" % str(subset_size))
     subsci = [sciences_list[i:i+subset_size] for i in xrange(0, len(sciences_list), subset_size)]
     cornernorms = []
+    othertmp = []
     for i, subset in enumerate(subsci):
         subset = [img_path + '/' + image for image in subset]
         listname = 'scilist_' + str(i) + '.list'
         fitsname = 'scifits_' + str(i) + '.fits'
         normname = 'scinorm_' + str(i) + '.norms'
         cornernorms.append(normname)
+        othertmp.append(listname)
+        othertmp.append(fitsname)
         runDarkmaster(darkmaster, img_path, subset, listname, fitsname, normname,
                       bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                       medianNorm=True, medianDark=True)
@@ -436,8 +439,8 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
     print("...removing temporary norm files")
     for f in cornernorms:
         os.remove(f)
-        os.remove(f.replace('.norms', '.list'))
-        os.remove(f.replace('.norms', '.fits'))
+    for f in othertmp:
+        os.remove(f)
 
     return normfilename
 
