@@ -87,7 +87,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         # Find incomplete tasks and store as dictionaries in remaining_tasks
         # remaining_tasks = [{"cmd": "fill_in_command", "cfg": "fill_in_cfg", "outf": "fill_in_output_file"}, ...]
         remaining_tasks = []
-        with open(resume_all, 'U') as a, open(resume_complete, 'U') as c, open(resume_failed, 'U') as f:
+        with open(resume_all, 'r') as a, open(resume_complete, 'r') as c, open(resume_failed, 'r') as f:
             comp = []
             fail = []
             for line in c:
