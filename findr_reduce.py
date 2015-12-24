@@ -97,7 +97,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             for line in a:
                 contents = line.rstrip().split('\t')
                 cmd = contents[0]
-                if cmd not in c and cmd not in f:
+                if cmd not in comp and cmd not in fail:
                     cfg = contents[1]
                     outf = contents[2]
                     remaining_tasks.append({"cmd": cmd, "cfg": cfg, "outf": outf})
