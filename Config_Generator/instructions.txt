@@ -1,0 +1,34 @@
+How-To Use Config Generator
+
+Table of Contents
+1. Basic Operating Instructions
+2. Modifying Parameter Sweeps
+
+Basic Operating Instructions
+Usage:
+    python config_generator.py <path/to/sweeper.cfg> <path/to/template.cfg>
+
+Sweeper Config (sweeper.cfg)
+    contains lists of parameters to sweep.
+
+Template Config (template.cfg)
+    template configuration file.
+
+
+Modifying Parameter Sweeps
+- Modifying Existing Sweeps
+    Values within pre-defined options can be modified with no additional changes needed.
+- Add New Sweeps
+    (1) Add new parameter into sweeper config (sweeper.cfg)
+        i.e. minDPx = [0.0,0.25,0.5,1.0,2.0]
+
+    (2) Modify config_generator.py
+        2.1: Add new parameter into "PARAMETER SECTION" (follow style of the others)
+                i.e. minDPx = eval(config.get("sweeper","minDPx"))
+        2.2: Add new parameter onto the end of "permutations" list (NOTE: keep track of index [zero-indexed])
+                i.e. permutation = product(<...>, minDPx)
+
+    (3) Set new parameter in template config (template.cfg) equal to str(param_set[<INDEX IN PERM. LIST>])
+        i.e. minDPx=str(param_set[1])
+- Advanced Definitions
+    Definitions can be lists, or can be more advanced list comprehensions. Feel free to experiment.

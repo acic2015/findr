@@ -81,8 +81,10 @@ print(str(counter)+" Config files generated.")
 
 if "__name__" =="__main__":
     if "-h" in sys.argv:
-        print("Run this to generate all of the configs for the param_sets you have defined\n"\
-              "To define your paramsets put them in sweeper.cfg in the form of a list\n"\
-               "You must then put that paramset at the end of the permutations line on line 42\n"\
-               " Then you must put that parameter in the template.cfg in the form of myparam = str(param_set[x])\n"\
+        print("Run this to generate all of the configs for the param_sets you have defined\n"
+              "To define your paramsets:\n"
+              "1) IN sweeper.cfg: Add new parameter in the form of a list or list-comprehension\n"
+              "2) IN config_generator.py: Read new parameter in 'PARAMETER SECTION' in config_generator.py\n"
+              "3) IN config_generator.py: Add paramset at the end of the permutations variable\n"
+              "4) IN template.cfg: Set new parameter in the form of myparam = str(param_set[x])\n"
               "Where x is the 0-based position of that paramset in the permutations parameters")
