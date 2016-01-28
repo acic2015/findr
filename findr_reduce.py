@@ -35,6 +35,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
     # Alert users of port number to use for workers.
     print "NOTICE: listening for workers on port %d" % (q.port)
+    # TODO: Report IP
+    # TODO: Report Exact String for Workers!
+    # TODO: Don't report out every instance of a job spawn!
 
     if not resume:
         # Case for fresh run (configList specified)
