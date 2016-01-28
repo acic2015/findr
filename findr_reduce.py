@@ -7,7 +7,7 @@ import os
 import sys
 
 
-def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeLogPrefix=None):
+def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
     # Check to make sure specified options are valid.
     if configList == None and resumeLogPrefix == None:
         print "ERROR (runKlipReduce): Specify a configList OR resume=True and a resumeLogPrefix to run"
@@ -17,9 +17,9 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
         exit()
 
     # Create log filenames.
-    alltasklog = log_prefix + "_alltasks.log"
-    completetasklog = log_prefix + "_completetasks.log"
-    failedtasklog = log_prefix + "_failedtasks.log"
+    alltasklog = logPrefix + "_alltasks.log"
+    completetasklog = logPrefix + "_completetasks.log"
+    failedtasklog = logPrefix + "_failedtasks.log"
 
     # Create the tasks queue using the default port. If this port is already
     # been used by another program, you can try setting port = 0 to use an
@@ -27,7 +27,7 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
     port = WORK_QUEUE_DEFAULT_PORT
     try:
         q = WorkQueue(port)
-        q.specify_log(log_prefix + "_wq.log")
+        q.specify_log(logPrefix + "_wq.log")
         #q.specify_password_file()  # TODO: Give these workers a password
     except:
         print "Instantiation of Work Queue failed!"
@@ -41,7 +41,7 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
         all_tasks = []
         with open(configList, 'U') as cfgin:
             for line in cfgin:
-                contents = line.rstrip().split('\t')
+                contents = line.rstrip().split()
                 all_tasks.append({"cfg": contents[0], "outf": contents[1]})
 
         # Create, log, and dispatch a task for each config file listed in the configList
@@ -51,7 +51,7 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
                 cfg = entry["cfg"]
                 #outf = entry["outf"] + "0000.fits"  # This works if you don't have the exactFName flag in klipReduce
                 outf = entry["outf"]
-                command = "%s -c %s" % (klipreduce, cfg)
+                command = "%s -c %s" % (klipReduce, os.path.basename(cfg))
                 # Add job to all tasks log.
                 alltasks.write("%s\t%s\t%s\n" % (command, cfg, outf))
                 # Build task.
@@ -87,7 +87,7 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
         # Find incomplete tasks and store as dictionaries in remaining_tasks
         # remaining_tasks = [{"cmd": "fill_in_command", "cfg": "fill_in_cfg", "outf": "fill_in_output_file"}, ...]
         remaining_tasks = []
-        with open(resume_all, 'U') as a, open(resume_complete, 'U') as c, open(resume_failed, 'U') as f:
+        with open(resume_all, 'r') as a, open(resume_complete, 'r') as c, open(resume_failed, 'r') as f:
             comp = []
             fail = []
             for line in c:
@@ -97,15 +97,15 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
             for line in a:
                 contents = line.rstrip().split('\t')
                 cmd = contents[0]
-                if cmd not in c and cmd not in f:
+                if cmd not in comp and cmd not in fail:
                     cfg = contents[1]
                     outf = contents[2]
                     remaining_tasks.append({"cmd": cmd, "cfg": cfg, "outf": outf})
 
         # Create, log, and dispatch a task for each remaining task.
-        alltasklog = log_prefix + "_alltasks.log"
-        completetasklog = log_prefix + "_completetasks.log"
-        failedtasklog = log_prefix + "_failedtasks.log"
+        alltasklog = logPrefix + "_alltasks.log"
+        completetasklog = logPrefix + "_completetasks.log"
+        failedtasklog = logPrefix + "_failedtasks.log"
         with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
             for task in remaining_tasks:
                 command = task["cmd"]
@@ -140,8 +140,27 @@ def runKlipReduce(klipreduce, log_prefix, configList=None, resume=False, resumeL
 
 ## Example Usages ##
 # From ConfigList
-#runKlipReduce("klipReduce", "try1", "configList")
+#runKlipReduce(klipReduce="klipReduce", logPrefix="try1", "configList")
 # Resume Previous Run
-#runKlipReduce("klipReduce", "try2", resume=True, resumeLogPrefix="try1")
+#runKlipReduce(klipReduce="klipReduce", logPrefix="try2", resume=True, resumeLogPrefix="try1")
 
-runKlipReduce("klipReduce", "prac1", "sampleCfgs.list")
+if __name__ == "__main__":
+    program_args = sys.argv[1:]
+    if len(program_args) < 3 or len(program_args) > 4:
+        print("ERROR (arguments)")
+        print("Please specify your klipReduce path "
+              "(usually just 'klipReduce'), a prefix for the run, and a configList or resume options.")
+        print("Syntax:")
+        print("-- Launch a new run: python findr_reduce.py <klipReduce path> <run_prefix> <config-and-outputs_list>")
+        print("-- Resume a previous run: python findr_reduce.py resume <klipReduce_path> <run_prefix> <resume_prefix>")
+        print("Examples:")
+        print("-- Launch a new run: python findr_reduce.py klipReduce try1 configList.list")
+        print("-- Resume a previous run: python findr_reduce.py klipReduce try2 try1")
+        exit()
+    try:
+        runKlipReduce(klipReduce=program_args[1], logPrefix=program_args[2],
+                      resume=True, resumeLogPrefix=program_args[3])
+    except:
+        runKlipReduce(klipReduce=program_args[0], logPrefix=program_args[1], configList=program_args[2])
+
+    print("Reductions Complete")

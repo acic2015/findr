@@ -301,7 +301,7 @@ def shift_cma(norm_filename, smoothed_sciences):
     j = 0
     for i in range(len(dark_time_in_seconds)):  # AKB Added to escape IndexError
         found = 0
-        while found == 0 and j < len(sci_time_in_seconds):
+        while found == 0 and j < (len(sci_time_in_seconds) - 1):
             if abs(sci_time_in_seconds[j] - dark_time_in_seconds[i]) < abs(sci_time_in_seconds[j + 1] - dark_time_in_seconds[i]):
                 found = 1
             j += 1
@@ -420,12 +420,15 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
     print("...calculating norm values from science image 10x10px corners in %s image batches" % str(subset_size))
     subsci = [sciences_list[i:i+subset_size] for i in xrange(0, len(sciences_list), subset_size)]
     cornernorms = []
+    othertmp = []
     for i, subset in enumerate(subsci):
         subset = [img_path + '/' + image for image in subset]
         listname = 'scilist_' + str(i) + '.list'
         fitsname = 'scifits_' + str(i) + '.fits'
         normname = 'scinorm_' + str(i) + '.norms'
         cornernorms.append(normname)
+        othertmp.append(listname)
+        othertmp.append(fitsname)
         runDarkmaster(darkmaster, img_path, subset, listname, fitsname, normname,
                       bot_xo=0, bot_xf=10, bot_yo=0, bot_yf=10, top_xo=0, top_xf=10, top_yo=imagesize-11, top_yf=imagesize-1,
                       medianNorm=True, medianDark=True)
@@ -438,6 +441,8 @@ def getSciNorms(darkmaster, sciences_list, img_path, subset_size, imagesize, nor
 
     print("...removing temporary norm files")
     for f in cornernorms:
+        os.remove(f)
+    for f in othertmp:
         os.remove(f)
 
     return normfilename

@@ -13,7 +13,7 @@ __author__ = "Daniel Kapellusch, Asher Baltzell"
 
 def main(argv):
     if not argv:
-        print "findr.py fits_path config_file"
+        print "findr_prepare.py fits_path config_file"
 
     # get path and cfg file name from passed args
     fits_path = argv[0]
@@ -56,7 +56,9 @@ def main(argv):
 
     if not (os.path.isfile(outputfname + ".json") and os.path.isfile(outputfname + ".tsv")):
         #  get files in dir if they are .fits
-        fits_lst = [fits_path + "/" + fit for fit in os.listdir(fits_path) if fit.endswith(".fits")]
+        fits_lst = [fits_path + "/" + fit for fit in os.listdir(fits_path) \
+                    if fit.endswith(".fits") \
+                    and not os.path.basename(fit).startswith("cent") and not os.path.basename(fit).startswith("dsub")]
 
         #  get fieldnames from first fits file
         with fits.open(fits_lst[0]) as fits_file:
@@ -136,4 +138,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    print("Findr Complete")
+    print("Findr Prepare Complete")

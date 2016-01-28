@@ -14,7 +14,7 @@ global path, max_processes,file_shifts,darkmaster,darksub,fitscent
 
 def main(argv):
     if not argv:
-        print "findr.py, path, config_file name"
+        print "findr_0.1.py, path, config_file name"
 
     global imgpath, max_processes,file_shifts,darkmaster,darksub,fitscent
     imgpath = argv[0]  # get path and cfg file name from passed args
