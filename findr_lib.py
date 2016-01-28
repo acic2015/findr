@@ -178,8 +178,11 @@ def loadShifts(shifts_file):
     shifts = {}
     with open(shifts_file, 'r') as s:
         for l in s:
-            c = l.split()
-            shifts[c[0]] = {'x': c[1], 'y': c[2]}
+            if len(l) <= 1 or l[0] == '#':
+                pass
+            else:
+                c = l.split()
+                shifts[c[0]] = {'x': c[1], 'y': c[2]}
     return shifts
 
 
