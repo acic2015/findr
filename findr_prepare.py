@@ -118,6 +118,11 @@ def main(argv):
     else:
         sorted_drknorms = findr_lib.normSort(norm_fn)
 
+    # Setup output directories.
+    if not os.path.exists("./dsub"):
+        os.mkdir("./dsub")
+    if not os.path.exists("./cent"):
+        os.mkdir("./cent")
     # Run subtractAndCenter
     print("Running SubtractAndCenter...")
     cent_dsub_files, cent_dsub_fails = findr_lib.subtractAndCenter(darksub, fitscent, darkmaster, max_processes,
