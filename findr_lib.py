@@ -150,7 +150,7 @@ def spawnDsubCmd(darksub, science_img, dark_img, norm_bot=None, norm_top=None):
     :param norm_top: Multiplicative scaling to apply to the top amplifier (optional).
     :return: darksub_command, subtracted_fiilename
     """
-    dsub_out = prependToFilename(science_img, 'dsub_')
+    dsub_out = './dsub/' + os.path.basename(prependToFilename(science_img, 'dsub_'))
     dsub_opts = '--inputFile=%s --darkFile=%s --outputFile=%s' % (science_img, dark_img, dsub_out)
     if norm_bot:
         dsub_opts += ' --norm_bot=%s' % str(norm_bot)
@@ -168,7 +168,7 @@ def spawnCentCmd(fitscent, subtracted_img, xshift, yshift):  # TODO: Make imSize
     :param yshift: Y shift to apply to image.
     :return: fitscent_command, centered_filename
     """
-    cent_out = prependToFilename(subtracted_img, 'cent_')
+    cent_out = './cent/' + os.path.basename(prependToFilename(subtracted_img, 'cent_'))
     cent_opts = '--input=%s --imSize=256 --x=%s --y=%s --output=%s' % (subtracted_img, str(xshift), str(yshift), cent_out)
     cent_cmd = fitscent + ' ' + cent_opts
     return cent_cmd, cent_out
