@@ -131,11 +131,12 @@ def main(argv):
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts, imagesize)
     # Relocate log files to log folder
+    print("Consolidating log files...")
     if not os.path.exists("./logs"):
         os.mkdir("./logs")
     log_files = ["all_science_norms.norms", "all_science_norms.norms.sorted",
                  "confirmation.fits", "confirmation.list", "confirmation.norms",
-                 masterdark_fn, norm_fn, norm_fn + '.sorted',
+                 masterdark_fn, norm_fn, norm_fn + '.sorted', darklist_fn,
                  outputfname + '.tsv', outputfname + '.json']
     for f in log_files:
         move(f, "./logs/")
