@@ -48,8 +48,11 @@ RUN cd ~/repos \
 	&& cd sofa/20150209_a/c/src \
 	&& echo extraction done - now editing makefile \
 	&& sed -i 's#INSTALL_DIR = $(HOME)#INSTALL_DIR = $(HOME)/library#' makefile \
+	&& echo step one finished \
 	&& sed -i 's#CFLAGF = -c -pedantic -Wall -W -O#CFLAGF = -c -pedantic -Wall -W -O -fPIC#' makefile \
-	&& sed -i 's#CFLAGX = -pedantic -Wall -W -O#CFLAGX = -pedantic -Wall -W -O -fPIC#' \
+	&& echo step two finished \
+	&& sed -i 's#CFLAGX = -pedantic -Wall -W -O#CFLAGX = -pedantic -Wall -W -O -fPIC#' makefile \
+	&& echo step three finished \
 	&& make \
 	&& make test \
 	&& make install
