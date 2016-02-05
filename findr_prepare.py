@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+from shutil import move
 import multiprocessing as mp
 from ConfigParser import ConfigParser
 
@@ -129,6 +130,16 @@ def main(argv):
                                                                    fits_path, cleaned_dic,
                                                                    masterdark_fn, sorted_drknorms, sorted_scinorms,
                                                                    smooth_window, file_shifts, imagesize)
+    # Relocate log files to log folder
+    if not os.path.exists("./logs"):
+        os.mkdir("./logs")
+    log_files = ["all_science_norms.norms", "all_science_norms.norms.sorted",
+                 "confirmation.fits", "confirmation.list", "confirmation.norms",
+                 masterdark_fn, norm_fn, norm_fn + '.sorted',
+                 outputfname + '.tsv', outputfname + '.json']
+    for f in log_files:
+        move(f, "./logs/")
+
     # Print failure summary
     cent_dsub_fail_count = len(cent_dsub_fails["missing_norms"]) + len(cent_dsub_fails["missing_shifts"])
     if cent_dsub_fail_count > 0:
