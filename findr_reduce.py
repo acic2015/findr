@@ -25,6 +25,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     # been used by another program, you can try setting port = 0 to use an
     # available port, or specify a port directly.
     port = WORK_QUEUE_DEFAULT_PORT
+    # Launch work queue
     try:
         q = WorkQueue(port)
         q.specify_log(logPrefix + "_wq.log")
@@ -33,14 +34,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         print "Instantiation of Work Queue failed!"
         sys.exit(1)
 
-    # Alert users of port number to use for workers.
-    print "NOTICE: listening for workers on port %d" % (q.port)
-    # TODO: Report IP
-    # TODO: Report Exact String for Workers!
-    # TODO: Don't report out every instance of a job spawn!
-
+    # Submit New Run (configList specified)
     if not resume:
-        # Case for fresh run (configList specified)
+        # Build all tasks from configList
         all_tasks = []
         with open(configList, 'U') as cfgin:
             for line in cfgin:
@@ -48,6 +44,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                 all_tasks.append({"cfg": contents[0], "outf": contents[1]})
 
         # Create, log, and dispatch a task for each config file listed in the configList
+        submit_count = 0
         with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
             for entry in all_tasks:
                 # Specify command and expected output file.
@@ -65,9 +62,18 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
                 # Submit task to queue after files have been specified.
                 taskid = q.submit(t)
-                print "submitted task (id# %d): %s" % (taskid, t.command)
+                submit_count += 1
+                #print "submitted task (id# %d): %s" % (taskid, t.command)
 
-            print "waiting for tasks to complete..."
+            # Print useful messages
+            print "%s Jobs Submitted" % str(submit_count)
+            print "MASTER: listening for workers on port %d" % (q.port)
+            print "...waiting for tasks to complete..."
+            # TODO: Report IP
+            # TODO: Report Exact String for Workers!
+            # TODO: Don't report out every instance of a job spawn!
+
+            # Submit jobs & accept completion messages while queue has remaining jobs.
             while not q.empty():
                 t = q.wait(5)
                 if t:
@@ -78,6 +84,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                     else:
                         # Task succeeded. Write to complete task log.
                         completetasks.write("%s\n" % t.command)
+
+    # Submit a resume run.
     elif resume:
         # Create and dispatch tasks only for those tasks which were not completed (based on log files).
         if resumeLogPrefix == None:
