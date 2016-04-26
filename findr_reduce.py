@@ -4,14 +4,14 @@
 from work_queue import *
 
 import os
-import sys
 import socket
+import sys
 
 
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
     # Check to make sure specified options are valid.
     if configList == None and resumeLogPrefix == None:
-        print "ERROR (runKlipReduce): Specify a configList OR resume=True and a resumeLogPrefix to run"
+        print("ERROR (runKlipReduce): Specify a configList OR resume=True and a resumeLogPrefix to run")
         exit()
     if configList != None and resumeLogPrefix != None:
         print("ERROR (runKlipReduce): configList and resumeLogPrefix specified. Use one OR the other.")
@@ -32,7 +32,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         q.specify_log(logPrefix + "_wq.log")
         #q.specify_password_file()  # TODO: Give these workers a password
     except:
-        print "Instantiation of Work Queue failed!"
+        print("Instantiation of Work Queue failed!")
         sys.exit(1)
 
     # Submit New Run (configList specified)
@@ -66,23 +66,26 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                 submit_count += 1
                 #print "submitted task (id# %d): %s" % (taskid, t.command)
 
-            # Print useful messages
-            print "%s Jobs Submitted" % str(submit_count)
-            print "MASTER: listening for workers on port %d" % (q.port)
+            # Determine listening IP
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8",80))
-            print(s.getsockname()[0])
+            ip = s.getsockname()[0]
             s.close()
-            print "...waiting for tasks to complete..."
-            # TODO: Report IP
-            # TODO: Report Exact String for Workers!
-            # TODO: Don't report out every instance of a job spawn!
+
+            # Build an example worker start command
+            wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (str(ip), str(q.port))
+            # Print useful messages
+            print("%s Jobs Submitted" % str(submit_count))
+            print("MASTER: listening for workers @ %s on port %d" % (str(ip), q.port))
+            print("(NOTE: this is a best guess IP, depending on your computing environment you may need to adjust.)")
+            print("\nMASTER: To start a worker, you can use this command: \n %s" % wkrstr)
+            print("...waiting for tasks to complete...")
 
             # Submit jobs & accept completion messages while queue has remaining jobs.
             while not q.empty():
                 t = q.wait(5)
                 if t:
-                    print "task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status)
+                    print("task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status))
                     if t.return_status != 0:
                         # Task failed. Write to failed task log.
                         failedtasks.write("%s\n" % t.command)
@@ -122,6 +125,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         alltasklog = logPrefix + "_alltasks.log"
         completetasklog = logPrefix + "_completetasks.log"
         failedtasklog = logPrefix + "_failedtasks.log"
+        submit_count = 0
         with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
             for task in remaining_tasks:
                 command = task["cmd"]
@@ -134,9 +138,24 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                 # Add other file specifications as needed here (ALSO ABOVE).
 
                 taskid = q.submit(t)
-                print "submitted task (id# %d): %s" % (taskid, t.command)
+                submit_count += 1
+                #print "submitted task (id# %d): %s" % (taskid, t.command)
 
-            print "waiting for tasks to complete..."
+            # Determine listening IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8",80))
+            ip = s.getsockname()[0]
+            s.close()
+
+            # Build an example worker start command
+            wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (str(ip), str(q.port))
+            # Print useful messages
+            print("%s Jobs Submitted" % str(submit_count))
+            print("MASTER: listening for workers @ %s on port %d" % (str(ip), q.port))
+            print("(NOTE: this is a best guess IP, depending on your computing environment you may need to adjust.)")
+            print("\nMASTER: To start a worker, you can use this command: \n %s" % wkrstr)
+            print("...waiting for tasks to complete...")
+
             while not q.empty():
                 t = q.wait(5)
                 if t:
@@ -150,7 +169,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     else:
         print("WARNING: runKlipReduce is confused and did not run. Please troubleshoot!")
 
-    print "all tasks complete!"
+    print("MASTER: all tasks complete!")
     return 1
 
 
