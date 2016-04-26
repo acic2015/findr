@@ -75,10 +75,11 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             # Build an example worker start command
             wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (str(ip), str(q.port))
             # Print useful messages
+            print("WorkQueue Launched Successfully!")
             print("%s Jobs Submitted" % str(submit_count))
-            print("MASTER: listening for workers @ %s on port %d" % (str(ip), q.port))
-            print("(NOTE: this is a best guess IP, depending on your computing environment you may need to adjust.)")
-            print("\nMASTER: To start a worker, you can use this command: \n %s" % wkrstr)
+            print("Listening for workers @ %s on port %d" % (str(ip), q.port))
+            print("(this is a best guess IP, depending on your computing environment you may need to adjust.)")
+            print("\nHINT: To start a worker, you can probably use this command: \n%s\n" % wkrstr)
             print("...waiting for tasks to complete...")
 
             # Submit jobs & accept completion messages while queue has remaining jobs.
@@ -150,10 +151,11 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             # Build an example worker start command
             wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (str(ip), str(q.port))
             # Print useful messages
+            print("WorkQueue Launched Successfully!")
             print("%s Jobs Submitted" % str(submit_count))
-            print("MASTER: listening for workers @ %s on port %d" % (str(ip), q.port))
-            print("(NOTE: this is a best guess IP, depending on your computing environment you may need to adjust.)")
-            print("\nMASTER: To start a worker, you can use this command: \n %s" % wkrstr)
+            print("Listening for workers @ %s on port %d" % (str(ip), q.port))
+            print("(this is a best guess IP, depending on your computing environment you may need to adjust.)")
+            print("\nHINT: To start a worker, you can probably use this command: \n%s\n" % wkrstr)
             print("...waiting for tasks to complete...")
 
             while not q.empty():
