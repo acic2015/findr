@@ -5,6 +5,7 @@ from work_queue import *
 
 import os
 import sys
+import socket
 
 
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
@@ -68,6 +69,10 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             # Print useful messages
             print "%s Jobs Submitted" % str(submit_count)
             print "MASTER: listening for workers on port %d" % (q.port)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8",80))
+            print(s.getsockname()[0])
+            s.close()
             print "...waiting for tasks to complete..."
             # TODO: Report IP
             # TODO: Report Exact String for Workers!
