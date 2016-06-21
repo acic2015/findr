@@ -1,6 +1,7 @@
 #!/home/cc/library/bin/cctools_python
 # CCTOOLS_PYTHON_VERSION 2.7 2.6
 
+from datetime import datetime
 from work_queue import *
 
 import os
@@ -182,6 +183,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 #runKlipReduce(klipReduce="klipReduce", logPrefix="try2", resume=True, resumeLogPrefix="try1")
 
 if __name__ == "__main__":
+    stime = datetime.now()
     program_args = sys.argv[1:]
     if len(program_args) < 3 or len(program_args) > 4:
         print("ERROR (arguments)")
@@ -201,3 +203,5 @@ if __name__ == "__main__":
         runKlipReduce(klipReduce=program_args[0], logPrefix=program_args[1], configList=program_args[2])
 
     print("Reductions Complete")
+    ftime = datetime.now()
+    print("Total Run Time: %s" % str(stime - ftime))
