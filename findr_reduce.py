@@ -87,7 +87,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             while not q.empty():
                 t = q.wait(5)
                 if t:
-                    print("task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status))
+                    print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
                     if t.return_status != 0:
                         # Task failed. Write to failed task log.
                         failedtasks.write("%s\n" % t.command)
@@ -162,7 +162,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             while not q.empty():
                 t = q.wait(5)
                 if t:
-                    print "task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status)
+                    print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
                     if t.return_status != 0:
                         # Task failed. Write to failed task log.
                         failedtasks.write("%s\n" % t.command)
