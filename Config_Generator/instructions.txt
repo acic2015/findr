@@ -1,4 +1,7 @@
-How-To Use Config Generator
+** NOTICE: A new, simpler version of config generator is now available. Please try using ConfigGenerator2.py **
+** NOTICE: ConfigGenerator2 instructions are embedded within the python file and example template (CG2.cfg)  **
+
+How-To Use Config Generator (config_generator.py)
 
 Table of Contents
 1. Basic Operating Instructions
