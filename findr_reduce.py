@@ -91,6 +91,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
     # Build task list, either from scratch or using resume logs.
     all_tasks = []
+    done = []
     if not resume:
         with open(configList, 'U') as cfgin:
             for line in cfgin:
@@ -100,6 +101,10 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         if resumeLogPrefix == None:
             print("ERROR (runKlipReduce): Must specify a resumeLogPrefix when resuming...")
             exit()
+
+        # Generate a list of files already in directory (for clean up into tar.gz in case of crash).
+        currents = [f for f in os.listdir('.')]
+
         resume_all = resumeLogPrefix + "_alltasks.log"
         resume_complete = resumeLogPrefix + "_completetasks.log"
         resume_failed = resumeLogPrefix + "_failedtasks.log"
@@ -119,6 +124,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                     cfg = contents[1]
                     outf = contents[2]
                     all_tasks.append({"cmd": cmd, "cfg": cfg, "outf": outf})
+                if contents[2] in currents:
+                    done.append(contents[2])
     else:
         print("WARNING: runKlipReduce is confused and did not run. Please troubleshoot!")
 
@@ -152,7 +159,6 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         print("...waiting for tasks to complete...")
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
-        done = []
         donecount = 0
         while not q.empty():
             t = q.wait(5)
