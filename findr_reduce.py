@@ -52,8 +52,10 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     :return:
     """
 
-    # Set number of files completed that will trigger compression.
+    # Set number of files completed that will trigger compression, the root and starting iterator of batch names.
     compress_threshold = 100
+    batch_root = "batch"
+    batch_count = 0
 
     # Check to make sure specified options are valid.
     if configList == None and resumeLogPrefix == None:
@@ -104,6 +106,12 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
         # Generate a list of files already in directory (for clean up into tar.gz in case of crash).
         currents = [f for f in os.listdir('.')]
+        current_batches = [f for f in currents if batch_root in f]
+        if len(current_batches) > 0:
+            for batch in current_batches:
+                count = batch.split('batch')[1].split('.tar.gz')[0]
+                if count > batch_count:
+                    batch_count = count
 
         resume_all = resumeLogPrefix + "_alltasks.log"
         resume_complete = resumeLogPrefix + "_completetasks.log"
@@ -159,7 +167,6 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         print("...waiting for tasks to complete...")
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
-        donecount = 0
         while not q.empty():
             t = q.wait(5)
             if t:
@@ -183,14 +190,14 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                         failedtasks.write("%s\n" % t.command)
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
-                if len(done) > compress_threshold:
-                    compress_remove(done, "batch%s.tar.gz" % str(donecount))
-                    donecount += 1
+                if len(done) >= compress_threshold:
+                    compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
+                    batch_count += 1
                     done = []
 
         # Compress any remaining outputs.
         if len(done) > 0:
-            compress_remove(done, "batch%s.tar.gz" % str(donecount))
+            compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
 
     print("MASTER: all tasks complete!")
     return 1
