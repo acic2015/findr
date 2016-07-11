@@ -34,6 +34,14 @@ def compress_remove(filelist, targzname):
         os.remove(f)
 
 
+def write_worker_report(queue):
+    print("Worker Report (%s): connected(%s), busy(%s), idle(%s), lost(%s)" % (str(datetime.now()),
+                                                                               str(queue.stats.total_workers_connected),
+                                                                               str(queue.stats.workers_busy),
+                                                                               str(queue.stats.workers_idle),
+                                                                               str(queue.stats.total_workers_removed)))
+
+
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
     """
     runKlipReduce: Distribute klipReduce tasks across resources using WorkQueue.
@@ -170,8 +178,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         while not q.empty():
             t = q.wait(5)
-            print q.stats
-            print q.stats_hierarchy
+            # Write report of worker conditions
+            write_worker_report(q)
+            # If tasks have returned.
             if t:
                 # Print return message.
                 print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
@@ -197,7 +206,6 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                     compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
                     batch_count += 1
                     done = []
-
         # Compress any remaining outputs.
         if len(done) > 0:
             compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
