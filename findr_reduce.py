@@ -25,6 +25,15 @@ def print_info(port, ip):
     print("\nHINT: To start a worker, you can probably use this command: \n%s\n" % wkrstr)
 
 
+def compress_remove(filelist, targzname):
+    tar = tarfile.open(targzname, "w:gz")
+    for f in filelist:
+        tar.add(f)
+    tar.close()
+    for f in filelist:
+        os.remove(f)
+
+
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
     """
     runKlipReduce: Distribute klipReduce tasks across resources using WorkQueue.
@@ -142,7 +151,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         print_info(str(q.port), str(ip))
         print("...waiting for tasks to complete...")
 
-        # Submit jobs & accept completion messages while queue has remaining jobs.
+        # Monitor queue, alert user to status, compress and remove files at specified threshold.
         done = []
         donecount = 0
         while not q.empty():
@@ -169,27 +178,13 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
                 if len(done) > compress_threshold:
+                    compress_remove(done, "batch%s.tar.gz" % str(donecount))
                     donecount += 1
-                    fname = "batch%s.tar.gz" % str(donecount)
-                    tar = tarfile.open(fname, "w:gz")
-                    for f in done:
-                        tar.add(f)
-                    tar.close()
-                    # Remove uncompressed versions and reset compression array.
-                    for f in done:
-                        os.remove(f)
                     done = []
 
         # Compress any remaining outputs.
         if len(done) > 0:
-            donecount += 1
-            fname = "batch%s.tar.gz" % str(donecount)
-            tar = tarfile.open(fname, "w:gz")
-            for f in done:
-                tar.add(f)
-            tar.close()
-            for f in done:
-                os.remove(f)
+            compress_remove(done, "batch%s.tar.gz" % str(donecount))
 
     print("MASTER: all tasks complete!")
     return 1
@@ -207,7 +202,7 @@ if __name__ == "__main__":
         print("-- Resume a previous run: python findr_reduce.py resume <klipReduce_path> <run_prefix> <resume_prefix>")
         print("Examples:")
         print("-- Launch a new run: python findr_reduce.py klipReduce try1 configList.list")
-        print("-- Resume a previous run: python findr_reduce.py klipReduce try2 try1")
+        print("-- Resume a previous run: python findr_reduce.py resume klipReduce try2 try1")
         exit()
     try:
         runKlipReduce(klipReduce=program_args[1], logPrefix=program_args[2],
