@@ -78,6 +78,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     try:
         q = WorkQueue(port)
         q.specify_log(logPrefix + "_wq.log")
+        q.enable_monitoring()
         #q.specify_password_file()  # TODO: Give these workers a password
         print("Workqueue launched on default port (%s)" % str(port))
     except:
@@ -109,9 +110,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         current_batches = [f for f in currents if batch_root in f]
         if len(current_batches) > 0:
             for batch in current_batches:
-                count = batch.split('batch')[1].split('.tar.gz')[0]
-                if count > batch_count:
-                    batch_count = count
+                count = int(batch.split('batch')[1].split('.tar.gz')[0])
+                if count >= batch_count:
+                    batch_count = count+1
 
         resume_all = resumeLogPrefix + "_alltasks.log"
         resume_complete = resumeLogPrefix + "_completetasks.log"
@@ -169,6 +170,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         while not q.empty():
             t = q.wait(5)
+            print q.stats
+            print q.stats_hierarchy
             if t:
                 # Print return message.
                 print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
