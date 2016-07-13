@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print("-- Resume a previous run: python findr_reduce.py resume <klipReduce_path> <run_prefix> <resume_prefix>")
         print("Examples:")
         print("-- Launch a new run: python findr_reduce.py klipReduce try1 configList.list")
-        print("-- Resume a previous run: python findr_reduce.py klipReduce try2 try1")
+        print("-- Resume a previous run: python findr_reduce.py resume klipReduce try2 try1")
         exit()
     try:
         runKlipReduce(klipReduce=program_args[1], logPrefix=program_args[2],
