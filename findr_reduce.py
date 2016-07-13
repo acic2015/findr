@@ -47,9 +47,9 @@ def write_task_report(task):
     #Memory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\tBytesSent\tBandwidth\tDisk\tTotalFiles
     r = task.resources_measured
     rl = [task.id, r.command, r.start, r.end, r.exit_status, r.cpu_time, r.wall_time, r.cores,
-          r.max_concurrent_processes, r.total_processes, r.memory, r.virtual_memory, r.swap_memory, r.bytes_read,
-          r.bytes_written, r.bytes_received, r.bytes_sent, r.bandwidth, r.disk. r.total_files]
-    return "\t".join(rl) + "\n"
+          r.max_concurrent_processes, r.total_processes, r.virtual_memory, r.swap_memory, r.bytes_read,
+          r.bytes_written]
+    return "\t".join(str(rl)) + "\n"
 
 
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
@@ -97,7 +97,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     try:
         q = WorkQueue(port)
         q.specify_log(logPrefix + "_wq.log")
-        monitoring = q.enable_monitoring()
+        monitoring = q.enable_monitoring(logPrefix + "_monitors")
         if not monitoring:
             print("NOTICE: Monitoring failed to initialize")
         #q.specify_password_file()  # TODO: Give these workers a password
@@ -108,11 +108,12 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             port = 0
             q = WorkQueue(port)
             q.specify_log(logPrefix + "_wq.log")
-            monitoring = q.enable_monitoring()
+            monitoring = q.enable_monitoring(logPrefix + "_monitors")
             if not monitoring:
                 print("NOTICE: Monitoring failed to initialize")
             print("Workqueue launched on available port (%s)" % str(port))
-        except:
+        except Exception as e:
+	    print e
             print("Instantiation of Work Queue failed!")
             sys.exit(1)
 
@@ -195,8 +196,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         if monitoring:
             use_log = open(usagelog, 'w')
             use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\t"
-                          "TotalProcesses\tMemory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\t"
-                          "BytesSent\tBandwidth\tDisk\tTotalFiles\n")
+                          "TotalProcesses\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\n")
         while not q.empty():
             t = q.wait(5)
             # Write report of worker conditions
