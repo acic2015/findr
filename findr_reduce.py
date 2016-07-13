@@ -206,7 +206,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         tries = 0
         while not q.empty():
             tries += 1
-            t = q.wait(5)
+            t = q.wait(6)
             # Write report of worker conditions
             if not tries % 10:
                 write_worker_report(q)
@@ -269,4 +269,4 @@ if __name__ == "__main__":
 
     print("Reductions Complete")
     ftime = datetime.now()
-    print("Total Run Time: %s" % str(stime - ftime))
+    print("Total Run Time: %s" % str(ftime - stime))
