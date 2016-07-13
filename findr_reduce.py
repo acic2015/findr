@@ -42,14 +42,26 @@ def write_worker_report(queue):
                                                                                str(queue.stats.total_workers_removed)))
 
 
-def write_task_report(task):
-    #TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\tTotalProcesses\t \
-    #Memory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\tBytesSent\tBandwidth\tDisk\tTotalFiles
+def write_task_report(task, queue):
     r = task.resources_measured
-    rl = [task.id, r.command, r.start, r.end, r.exit_status, r.cpu_time, r.wall_time, r.cores,
-          r.max_concurrent_processes, r.total_processes, r.virtual_memory, r.swap_memory, r.bytes_read,
-          r.bytes_written]
-    return "\t".join(str(rl)) + "\n"
+    s = queue.stats
+    rl = [task.id, r.command, r.start, r.end, r.exit_status,
+          r.cpu_time, r.wall_time, r.cores, r.virtual_memory, r.swap_memory,
+          r.total_processes, r.max_concurrent_processes, r.bytes_read, r.bytes_written,
+          s.total_workers_connected, s.workers_busy, s.workers_idle, s.total_workers_removed,
+          s.tasks_complete, s.tasks_running, s.tasks_waiting, s.total_execute_time]
+    return "\t".join([str(l) for l in rl]) + "\n"
+
+
+def spawn_queue(port, logPrefix):
+    queue = WorkQueue(port)
+    queue.specify_log(logPrefix + "_wq.log")
+    monitor_status = queue.enable_monitoring(logPrefix + "_monitors")
+    if not monitor_status:
+        print("NOTICE: Monitoring failed to initialize")
+    # queue.specify_password_file()  # TODO: Give workers a password file
+    print("Workqueue launched on port (%s)" % str(port))
+    return queue, monitor_status
 
 
 def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
@@ -95,26 +107,15 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     port = WORK_QUEUE_DEFAULT_PORT
     # Launch work queue
     try:
-        q = WorkQueue(port)
-        q.specify_log(logPrefix + "_wq.log")
-        monitoring = q.enable_monitoring(logPrefix + "_monitors")
-        if not monitoring:
-            print("NOTICE: Monitoring failed to initialize")
-        #q.specify_password_file()  # TODO: Give these workers a password
-        print("Workqueue launched on default port (%s)" % str(port))
+        q, monitoring = spawn_queue(port, logPrefix)
     except:
         print("Failed to launch on default WorkQueue port. Trying to find an available port...")
         try:
             port = 0
-            q = WorkQueue(port)
-            q.specify_log(logPrefix + "_wq.log")
-            monitoring = q.enable_monitoring(logPrefix + "_monitors")
-            if not monitoring:
-                print("NOTICE: Monitoring failed to initialize")
-            print("Workqueue launched on available port (%s)" % str(port))
+            q, monitoring = spawn_queue(port, logPrefix)
         except Exception as e:
-	    print e
             print("Instantiation of Work Queue failed!")
+            print(e)
             sys.exit(1)
 
     # Build task list, either from scratch or using resume logs.
@@ -195,18 +196,26 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
             use_log = open(usagelog, 'w')
-            use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\t"
-                          "TotalProcesses\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\n")
+            use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\t"
+                          "CPUTime\tWallTime\tCores\tVirtualMemory\tSwapMemory\t"
+                          "TotalProcesses\tMaxConcurrentProcesses\tBytesRead\tBytesWritten\t"
+                          "WorkersConnected\tWorkersBusy\tWorkersIdle\tWorkersRemoved\t"
+                          "TasksComplete\tTasksRunning\tTasksWaiting\tTotalExecuteTime\n")
+
+        write_worker_report(q)
+        tries = 0
         while not q.empty():
+            tries += 1
             t = q.wait(5)
             # Write report of worker conditions
-            write_worker_report(q)
+            if not tries % 10:
+                write_worker_report(q)
             # If tasks have returned.
             if t:
                 # Print return message.
                 print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
                 if monitoring:
-                    use_log.write(write_task_report(t))
+                    use_log.write(write_task_report(t, q))
                 # Check that task is actually complete.
                 if t.return_status != 0:
                     # Task failed. Write to failed task log.
