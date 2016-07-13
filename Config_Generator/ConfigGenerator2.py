@@ -14,13 +14,20 @@ start = datetime.now()
 # Read configuration file & build parameter/value items.
 parameters = []
 values = []
+output_parameter = ''
+output_extension = ''
 with open(argv[1], 'U') as cfg:
     for line in cfg:
         line = line.strip()
         if len(line) > 0 and line[0][0] != '#':
             parts = map(str.strip, line.split("=", 1))
-            parameters.append(parts[0])
-            values.append(eval(parts[1]))
+            if parts[0] == 'OUTPUT_PARAMETER':
+                output_parameter = parts[1]
+            elif parts[0] == 'OUTPUT_EXTENSION':
+                output_extension = parts[1]
+            else:
+                parameters.append(parts[0])
+                values.append(eval(parts[1]))
 
 # Calculate total number of configs to be generated & all combinations of values.
 total = reduce(lambda x,y: x*y, map(len, values))
@@ -57,12 +64,11 @@ for n, group in enumerate(perm):
     # Write config file.
     f = "output_%s" % (n+1)
     fname = path.join("configs", f + ".cfg")
-    log.write(fname + ' ' + f + '.fits\n')
+    log.write("%s %s\n" % (fname, f + output_extension)) #fname + ' ' + f + '.fits\n')
     ofile = open(fname, 'w')
     for i in range(len(parameters)):
         ofile.write("%s=%s\n" % (parameters[i], group[i]))
-    ofile.write("exactFName=true\n")  # Add exactFName parameter
-    ofile.write("outputFile=%s\n" % (f+ ".fits"))  # Add expected output file name
+    ofile.write("%s=%s\n" % (output_parameter, f + output_extension))  # Add expected output file name
     ofile.close()
 log.close()
 
