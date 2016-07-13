@@ -46,7 +46,7 @@ def write_task_report(task):
     #TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\tTotalProcesses\t \
     #Memory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\tBytesSent\tBandwidth\tDisk\tTotalFiles
     r = task.resources_measured
-    rl = [r.task_id, r.command, r.start, r.end, r.exit_status, r.cpu_time, r.wall_time, r.cores,
+    rl = [task.id, r.command, r.start, r.end, r.exit_status, r.cpu_time, r.wall_time, r.cores,
           r.max_concurrent_processes, r.total_processes, r.memory, r.virtual_memory, r.swap_memory, r.bytes_read,
           r.bytes_written, r.bytes_received, r.bytes_sent, r.bandwidth, r.disk. r.total_files]
     return "\t".join(rl) + "\n"
@@ -97,7 +97,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     try:
         q = WorkQueue(port)
         q.specify_log(logPrefix + "_wq.log")
-        q.enable_monitoring()
+        monitoring = q.enable_monitoring()
+        if not monitoring:
+            print("NOTICE: Monitoring failed to initialize")
         #q.specify_password_file()  # TODO: Give these workers a password
         print("Workqueue launched on default port (%s)" % str(port))
     except:
@@ -106,6 +108,9 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             port = 0
             q = WorkQueue(port)
             q.specify_log(logPrefix + "_wq.log")
+            monitoring = q.enable_monitoring()
+            if not monitoring:
+                print("NOTICE: Monitoring failed to initialize")
             print("Workqueue launched on available port (%s)" % str(port))
         except:
             print("Instantiation of Work Queue failed!")
@@ -187,10 +192,11 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         print("...waiting for tasks to complete...")
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
-        use_log = open(usagelog, 'w')
-        use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\t"
-                      "TotalProcesses\tMemory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\t"
-                      "BytesSent\tBandwidth\tDisk\tTotalFiles\n")
+        if monitoring:
+            use_log = open(usagelog, 'w')
+            use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\tCPUTime\tWallTime\tCores\tMaxConcurrentProcesses\t"
+                          "TotalProcesses\tMemory\tVirtualMemory\tSwapMemory\tBytesRead\tBytesWritten\tBytesReceived\t"
+                          "BytesSent\tBandwidth\tDisk\tTotalFiles\n")
         while not q.empty():
             t = q.wait(5)
             # Write report of worker conditions
@@ -199,7 +205,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             if t:
                 # Print return message.
                 print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
-                use_log.write(write_task_report(t))
+                if monitoring:
+                    use_log.write(write_task_report(t))
                 # Check that task is actually complete.
                 if t.return_status != 0:
                     # Task failed. Write to failed task log.
@@ -225,7 +232,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
         if len(done) > 0:
             compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
 
-    use_log.close()
+    if monitoring:
+        use_log.close()
     print("MASTER: all tasks complete!")
     return 1
 
