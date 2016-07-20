@@ -35,11 +35,14 @@ def compress_remove(filelist, targzname):
 
 
 def write_worker_report(queue):
-    print("Worker Report (%s): connected(%s), busy(%s), idle(%s), lost(%s)" % (str(datetime.now()),
-                                                                               str(queue.stats.total_workers_connected),
-                                                                               str(queue.stats.workers_busy),
-                                                                               str(queue.stats.workers_idle),
-                                                                               str(queue.stats.total_workers_removed)))
+    print("Status Report: %s (time elapsed %s)" % (str(datetime.now()), str(datetime.now()-stime)))
+    print("- Workers: connected(%s), busy(%s), idle(%s), lost(%s)" % (str(queue.stats.total_workers_connected),
+                                                                      str(queue.stats.workers_busy),
+                                                                      str(queue.stats.workers_idle),
+                                                                      str(queue.stats.total_workers_removed)))
+    print("- Tasks: complete(%s), running(%s), waiting (%s)" % (str(queue.stats.tasks_complete),
+                                                                str(queue.stats.tasks_running),
+                                                                str(queue.stats.tasks_waiting)))
 
 
 def write_task_report(task, queue):
@@ -81,7 +84,6 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     :param resumeLogPrefix: OPTIONAL, prefix of a previous run logs from which to resume.
     :return:
     """
-
     # Set number of files completed that will trigger compression, the root and starting iterator of batch names.
     compress_threshold = 100
     batch_root = "batch"
@@ -138,13 +140,12 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             for batch in current_batches:
                 count = int(batch.split('batch')[1].split('.tar.gz')[0])
                 if count >= batch_count:
-                    batch_count = count+1
+                    batch_count = count + 1
 
         resume_all = resumeLogPrefix + "_alltasks.log"
         resume_complete = resumeLogPrefix + "_completetasks.log"
         resume_failed = resumeLogPrefix + "_failedtasks.log"
         # Find incomplete tasks and store as dictionaries in remaining_tasks
-        # remaining_tasks = [{"cmd": "fill_in_command", "cfg": "fill_in_cfg", "outf": "fill_in_output_file"}, ...]
         with open(resume_all, 'r') as a, open(resume_complete, 'r') as c, open(resume_failed, 'r') as f:
             comp = []
             fail = []
@@ -158,31 +159,36 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                 if cmd not in comp and cmd not in fail:
                     cfg = contents[1]
                     outf = contents[2]
-                    all_tasks.append({"cmd": cmd, "cfg": cfg, "outf": outf})
+                    all_tasks.append({"cfg": cfg, "outf": outf})
                 if contents[2] in currents:
                     done.append(contents[2])
     else:
         print("WARNING: runKlipReduce is confused and did not run. Please troubleshoot!")
+        exit()
 
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
     submit_count = 0
     expect_out = {}
-    with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
+    with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog,
+                                                                                              'w') as failedtasks:
         for entry in all_tasks:
             # Specify command and expected output file.
             cfg = entry["cfg"]
             outf = entry["outf"]
             command = "%s -c %s" % (klipReduce, os.path.basename(cfg))
-            # Add job to all tasks log.
-            alltasks.write("%s\t%s\t%s\n" % (command, cfg, outf))
+
             # Build task.
             t = Task(command)
+            t.specify_tag(command)
             t.specify_file(cfg, os.path.basename(cfg), WORK_QUEUE_INPUT, cache=False)
             t.specify_file(outf, os.path.basename(outf), WORK_QUEUE_OUTPUT, cache=False)
             # Add other file specifications as needed here (ALSO BELOW).
 
             # Submit task to queue.
             taskid = q.submit(t)
+
+            # Add job to all tasks log.
+            alltasks.write("%s\t%s\t%s\n" % (t.tag, cfg, outf))
             expect_out[taskid] = outf
             submit_count += 1
 
@@ -191,7 +197,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
         print("WorkQueue Launched Successfully!")
         print_info(str(q.port), str(ip))
-        print("...waiting for tasks to complete...")
+        print("...waiting for %s tasks to complete..." % str(submit_count))
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
@@ -213,24 +219,25 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
             # If tasks have returned.
             if t:
                 # Print return message.
-                print("%s - task (id# %d) complete: %s (return code %d)" % (str(datetime.now()), t.id, t.command, t.return_status))
+                print("%s - task (id# %d) complete: %s (return code %d)" % (
+                str(datetime.now()), t.id, t.command, t.return_status))
                 if monitoring:
                     use_log.write(write_task_report(t, q))
                 # Check that task is actually complete.
                 if t.return_status != 0:
                     # Task failed. Write to failed task log.
-                    failedtasks.write("%s\n" % t.command)
+                    failedtasks.write("%s\n" % t.tag)
                 else:
                     # Task succeeded. Check for valid output.
                     expect = expect_out[t.id]
                     if os.path.exists(expect):
                         # Task succeeded & output exists. Write to complete task log.
-                        completetasks.write("%s\n" % t.command)
+                        completetasks.write("%s\n" % t.tag)
                         done.append(expect)
                     else:
                         # Output is missing, alert user and write to failed tasks.
                         print("NOTICE: Missing output - " + str(t.command))
-                        failedtasks.write("%s\n" % t.command)
+                        failedtasks.write("%s\n" % t.tag)
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
                 if len(done) >= compress_threshold:
@@ -261,10 +268,11 @@ if __name__ == "__main__":
         print("-- Launch a new run: python findr_reduce.py klipReduce try1 configList.list")
         print("-- Resume a previous run: python findr_reduce.py resume klipReduce try2 try1")
         exit()
-    try:
+    if "resume" in program_args:
+        print("Resuming previous from %s_*.log" % program_args[3])
         runKlipReduce(klipReduce=program_args[1], logPrefix=program_args[2],
                       resume=True, resumeLogPrefix=program_args[3])
-    except:
+    else:
         runKlipReduce(klipReduce=program_args[0], logPrefix=program_args[1], configList=program_args[2])
 
     print("Reductions Complete")
