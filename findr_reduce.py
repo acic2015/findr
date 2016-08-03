@@ -31,7 +31,10 @@ def compress_remove(filelist, targzname):
         tar.add(f)
     tar.close()
     for f in filelist:
-        os.remove(f)
+        try:
+            os.remove(f)
+        except:
+            print("File not found (%s): skipping delete" % str(f))
 
 
 def write_worker_report(queue):
@@ -40,9 +43,8 @@ def write_worker_report(queue):
                                                                       str(queue.stats.workers_busy),
                                                                       str(queue.stats.workers_idle),
                                                                       str(queue.stats.total_workers_removed)))
-    print("- Tasks: complete(%s), running(%s), waiting (%s)" % (str(queue.stats.tasks_complete),
-                                                                str(queue.stats.tasks_running),
-                                                                str(queue.stats.tasks_waiting)))
+    print("- Tasks: running(%s), waiting (%s)" % (str(queue.stats.tasks_running),
+                                                  str(queue.stats.tasks_waiting)))
 
 
 def write_task_report(task, queue):
@@ -169,8 +171,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
     submit_count = 0
     expect_out = {}
-    with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog,
-                                                                                              'w') as failedtasks:
+    with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
         for entry in all_tasks:
             # Specify command and expected output file.
             cfg = entry["cfg"]
@@ -233,7 +234,8 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
                     if os.path.exists(expect):
                         # Task succeeded & output exists. Write to complete task log.
                         completetasks.write("%s\n" % t.tag)
-                        done.append(expect)
+                        if expect not in done:
+                            done.append(expect)
                     else:
                         # Output is missing, alert user and write to failed tasks.
                         print("NOTICE: Missing output - " + str(t.command))
