@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import json
 import os
@@ -14,7 +16,9 @@ __author__ = "Daniel Kapellusch, Asher Baltzell"
 
 def main(argv):
     if not argv:
-        print "findr_prepare.py fits_path config_file"
+        print("Error: Missing Input Files!")
+        print("findr_prepare.py <fits_path> <config_file>")
+        exit()
 
     # get path and cfg file name from passed args
     fits_path = argv[0]

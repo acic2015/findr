@@ -1,4 +1,4 @@
-#!/home/cc/library/bin/cctools_python
+#!/usr/bin/env cctools_python
 # CCTOOLS_PYTHON_VERSION 2.7 2.6
 
 from datetime import datetime
