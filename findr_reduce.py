@@ -171,7 +171,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
     submit_count = 0
     expect_out = {}
-    with open(alltasklog, 'w') as alltasks, open(completetasklog, 'w') as completetasks, open(failedtasklog, 'w') as failedtasks:
+    with open(alltasklog, 'w', 1) as alltasks, open(completetasklog, 'w', 1) as completetasks, open(failedtasklog, 'w', 1) as failedtasks:
         for entry in all_tasks:
             # Specify command and expected output file.
             cfg = entry["cfg"]
@@ -202,7 +202,7 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
-            use_log = open(usagelog, 'w')
+            use_log = open(usagelog, 'w', 1)
             use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\t"
                           "CPUTime\tWallTime\tCores\tVirtualMemory\tSwapMemory\t"
                           "TotalProcesses\tMaxConcurrentProcesses\tBytesRead\tBytesWritten\t"
