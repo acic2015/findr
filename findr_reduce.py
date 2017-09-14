@@ -23,7 +23,7 @@ def write_message(message_type, message):
         print("[Findr] %s - MESSAGE - %s" % (datetime.now(), message))
 
 
-def get_port():
+def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
@@ -33,9 +33,10 @@ def get_port():
 
 def print_info(port, ip):
     wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (ip, port)
-    print("Listening for workers @ %s on port %s" % (ip, port))
-    print("(this is a best guess IP, depending on your computing environment you may need to adjust.)")
-    print("\nHINT: To start a worker, you can probably use this command: \n%s\n" % wkrstr)
+    write_message("i", "Listening for workers @ %s on port %s." % (ip, port))
+    write_message("i", "... this is a best guess IP, depending on your computing environment you may need to adjust.")
+    write_message("i", "... HINT: To start a worker, you can probably use this command:")
+    write_message("i", "...       %s" % wkrstr)
 
 
 def compress_remove(filelist, targzname):
@@ -47,17 +48,19 @@ def compress_remove(filelist, targzname):
         try:
             os.remove(f)
         except:
-            print("File not found (%s): skipping delete" % str(f))
+            write_message("w", "File not found (%s): skipping delete" % str(f))
 
 
 def write_worker_report(queue):
-    print("Status Report: %s (time elapsed %s)" % (str(datetime.now()), str(datetime.now()-stime)))
-    print("- Workers: connected(%s), busy(%s), idle(%s), lost(%s)" % (str(queue.stats.total_workers_connected),
-                                                                      str(queue.stats.workers_busy),
-                                                                      str(queue.stats.workers_idle),
-                                                                      str(queue.stats.total_workers_removed)))
-    print("- Tasks: running(%s), waiting (%s)" % (str(queue.stats.tasks_running),
-                                                  str(queue.stats.tasks_waiting)))
+    wkr_str = "connected(%s), busy(%s), idle(%s), lost(%s)" % (str(queue.stats.total_workers_connected),
+                                                               str(queue.stats.workers_busy),
+                                                               str(queue.stats.workers_idle),
+                                                               str(queue.stats.total_workers_removed))
+    tsk_str = "running(%s), waiting (%s)" % (str(queue.stats.tasks_running),
+                                             str(queue.stats.tasks_waiting))
+    write_message("i", "Status Report (time elapsed %s):" % str(datetime.now() - stime))
+    write_message("i", "... Workers: %s." % wkr_str)
+    write_message("i", "... Tasks: %s." % tsk_str)
 
 
 def write_task_report(task, queue):
@@ -76,9 +79,9 @@ def spawn_queue(port, logPrefix):
     queue.specify_log(logPrefix + "_wq.log")
     monitor_status = queue.enable_monitoring(logPrefix + "_monitors")
     if not monitor_status:
-        print("NOTICE: Monitoring failed to initialize")
+        write_message("w", "Monitoring failed to initialize.")
     # queue.specify_password_file()  # TODO: Give workers a password file
-    print("Workqueue launched on port (%s)" % str(port))
+    write_message("i", "Workqueue launched on port %s." % str(port))
     return queue, monitor_status
 
 
@@ -106,10 +109,10 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
 
     # Check to make sure specified options are valid.
     if configList == None and resumeLogPrefix == None:
-        print("ERROR (runKlipReduce): Specify a configList OR resume=True and a resumeLogPrefix to run")
+        write_message("e", "Specify a configList OR resume=True and a resumeLogPrefix to run.")
         exit()
     if configList != None and resumeLogPrefix != None:
-        print("ERROR (runKlipReduce): configList and resumeLogPrefix specified. Use one OR the other.")
+        write_message("e", "configList and resumeLogPrefix specified. Use one OR the other.")
         exit()
 
     # Create log filename objects.
@@ -126,13 +129,13 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
     try:
         q, monitoring = spawn_queue(port, logPrefix)
     except:
-        print("Failed to launch on default WorkQueue port. Trying to find an available port...")
+        write_message("w", "Failed to launch on default WorkQueue port. Trying to find an available port...")
         try:
             port = 0
             q, monitoring = spawn_queue(port, logPrefix)
         except Exception as e:
-            print("Instantiation of Work Queue failed!")
-            print(e)
+            write_message("e", "Instantiation of Work Queue failed!")
+            write_message("e", e)
             sys.exit(1)
 
     # Build task list, either from scratch or using resume logs.
@@ -145,7 +148,7 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
                 all_tasks.append({"cfg": contents[0], "outf": contents[1]})
     elif resume:
         if resumeLogPrefix == None:
-            print("ERROR (runKlipReduce): Must specify a resumeLogPrefix when resuming...")
+            write_message("e", "Must specify a resumeLogPrefix when resuming...")
             exit()
 
         # Generate a list of files already in directory (for clean up into tar.gz in case of crash).
@@ -178,7 +181,7 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
                 if contents[2] in currents:
                     done.append(contents[2])
     else:
-        print("WARNING: runKlipReduce is confused and did not run. Please troubleshoot!")
+        write_message("e", "runFindr is confused and did not run. Please troubleshoot!")
         exit()
 
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
@@ -207,11 +210,11 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
             submit_count += 1
 
         # Determine listening IP
-        ip = get_port()
+        ip = get_ip()
 
-        print("WorkQueue Launched Successfully!")
+        write_message("i", "Findr launched successfully!")
         print_info(str(q.port), str(ip))
-        print("...waiting for %s tasks to complete..." % str(submit_count))
+        write_message("i", "Waiting for %s tasks to complete..." % str(submit_count))
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
@@ -233,8 +236,7 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
             # If tasks have returned.
             if t:
                 # Print return message.
-                print("%s - task (id# %d) complete: %s (return code %d)" % (
-                str(datetime.now()), t.id, t.command, t.return_status))
+                write_message("i", "Task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status))
                 if monitoring:
                     use_log.write(write_task_report(t, q))
                 # Check that task is actually complete.
@@ -251,7 +253,7 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
                             done.append(expect)
                     else:
                         # Output is missing, alert user and write to failed tasks.
-                        print("NOTICE: Missing output - " + str(t.command))
+                        write_message("w", "Missing output - " + str(t.command))
                         failedtasks.write("%s\n" % t.tag)
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
@@ -265,7 +267,7 @@ def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=F
 
     if monitoring:
         use_log.close()
-    print("MASTER: all tasks complete!")
+    write_message("i", "All tasks complete!")
     return 1
 
 
@@ -301,8 +303,6 @@ if __name__ == "__main__":
         # TODO: Consider changing this error to simply fixing, or to ONLY retrying failed tasks.
         write_message("e", "Failed/incomplete jobs can only be retried in conjunction with a resume. Use '--resume'.")
         exit(1)
-
-    print args
 
     # Print welcoming message.
     if args.resume:
