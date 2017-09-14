@@ -83,6 +83,16 @@ def spawn_queue(port, logprefix):
     return queue, monitor_status
 
 
+def create_task(cmd, cfgf, outpf):
+    # Build task.
+    t = Task(cmd)
+    t.specify_tag(cmd)
+    t.specify_file(cfgf, os.path.basename(cfgf), WORK_QUEUE_INPUT, cache=False)
+    t.specify_file(outpf, os.path.basename(outpf), WORK_QUEUE_OUTPUT, cache=False)
+    # Add other file specifications as needed here.
+    return t
+
+
 def delete_line(filepath, line):
     f = open(filepath, "r+")
     d = f.readlines()
@@ -184,7 +194,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
     submit_count = 0
     complete_count = 0
-    expect_out = {}
+    task_details = {}
     with open(alltasklog, 'w', 1) as alltasks, open(completetasklog, 'w', 1) as completetasks, open(failedtasklog, 'w', 1) as failedtasks:
         for outf, details in all_tasks.iteritems():
             if details[1] != "complete":
@@ -193,11 +203,12 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                 command = "%s -c %s" % (klipReduce, os.path.basename(cfg))
 
                 # Build task.
-                t = Task(command)
-                t.specify_tag(command)
-                t.specify_file(cfg, os.path.basename(cfg), WORK_QUEUE_INPUT, cache=False)
-                t.specify_file(outf, os.path.basename(outf), WORK_QUEUE_OUTPUT, cache=False)
-                # Add other file specifications as needed here.
+                t = create_task(command, cfg, outf)
+                #t = Task(command)
+                #t.specify_tag(command)
+                #t.specify_file(cfg, os.path.basename(cfg), WORK_QUEUE_INPUT, cache=False)
+                #t.specify_file(outf, os.path.basename(outf), WORK_QUEUE_OUTPUT, cache=False)
+                #Add other file specifications as needed here.
 
                 # If not resuming, add job to _all.log.
                 if not resume:
@@ -206,7 +217,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                 # Submit task to queue.
                 taskid = q.submit(t)
                 all_tasks[outf][1] = "wait"
-                expect_out[taskid] = outf
+                task_details[taskid] = [outf, cfg, command]
                 submit_count += 1
             else:
                 complete_count += 1
@@ -243,13 +254,16 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                     use_log.write(write_task_report(t, q))
 
                 # Check that task is actually complete.
-                expect = expect_out[t.id]
+                expect = task_details[t.id][0]
                 if t.return_status != 0:
                     # Task failed. Write to failed task log.
                     all_tasks[expect][1] = "failed"
                     all_tasks[expect][2] += 1
-                    # Todo: Resubmit task to queue, if under retry limit.
-                    failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                    if all_tasks[expect][2] <= retry:
+                        # Todo: Resubmit task to queue, if under retry limit.
+                        failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                    else:
+                        failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                 else:
                     # Task succeeded. Check for valid output.
                     if os.path.exists(expect):
@@ -264,7 +278,11 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                         failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                         all_tasks[expect][1] = "failed"
                         all_tasks[expect][2] += 1
-                        # Todo: Resubmit task to queue, if under retry limit.
+                        if all_tasks[expect][2] <= retry:
+                            # Todo: Resubmit task to queue, if under retry limit.
+                            failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                        else:
+                            failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
                 if len(done) >= compress_threshold:
