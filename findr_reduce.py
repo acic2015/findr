@@ -34,7 +34,7 @@ def get_ip():
 def print_info(port, ip):
     wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (ip, port)
     write_message("i", "Listening for workers @ %s on port %s." % (ip, port))
-    write_message("i", "... this is a best guess IP, depending on your computing environment you may need to adjust.")
+    write_message("i", "... This is a best guess IP, depending on your computing environment you may need to adjust.")
     write_message("i", "... HINT: To start a worker, you can probably use this command:")
     write_message("i", "...       %s" % wkrstr)
 
