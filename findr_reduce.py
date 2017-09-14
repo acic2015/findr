@@ -4,10 +4,23 @@
 from datetime import datetime
 from work_queue import *
 
+import argparse
+import glob
 import os
 import socket
 import sys
 import tarfile
+
+
+def write_message(message_type, message):
+    if message_type.lower() == "e" or message_type.lower() == "error":
+        print("[Findr] %s - ERROR - %s" % (datetime.now(), message))
+    elif message_type.lower() == "w" or message_type.lower() == "warning":
+        print("[Findr] %s - WARNING - %s" % (datetime.now(), message))
+    elif message_type.lower() == "i" or message_type.lower() == "info":
+        print("[Findr] %s - INFO - %s" % (datetime.now(), message))
+    else:
+        print("[Findr] %s - MESSAGE - %s" % (datetime.now(), message))
 
 
 def get_port():
@@ -69,7 +82,7 @@ def spawn_queue(port, logPrefix):
     return queue, monitor_status
 
 
-def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, resume=False, resumeLogPrefix=None):
+def runFindr(configList=None, klipReduce="klipReduce", logPrefix="run", resume=False, resumeLogPrefix=None):
     """
     runKlipReduce: Distribute klipReduce tasks across resources using WorkQueue.
 
@@ -257,26 +270,67 @@ def runKlipReduce(klipReduce="klipReduce", logPrefix="run", configList=None, res
 
 
 if __name__ == "__main__":
+    # Record start time.
     stime = datetime.now()
-    program_args = sys.argv[1:]
-    if len(program_args) < 3 or len(program_args) > 4:
-        print("ERROR (arguments)")
-        print("Please specify your klipReduce path "
-              "(usually just 'klipReduce'), a prefix for the run, and a configList or resume options.")
-        print("Syntax:")
-        print("-- Launch a new run: python findr_reduce.py <klipReduce path> <run_prefix> <config-and-outputs_list>")
-        print("-- Resume a previous run: python findr_reduce.py resume <klipReduce_path> <run_prefix> <resume_prefix>")
-        print("Examples:")
-        print("-- Launch a new run: python findr_reduce.py klipReduce try1 configList.list")
-        print("-- Resume a previous run: python findr_reduce.py resume klipReduce try2 try1")
-        exit()
-    if "resume" in program_args:
-        print("Resuming previous from %s_*.log" % program_args[3])
-        runKlipReduce(klipReduce=program_args[1], logPrefix=program_args[2],
-                      resume=True, resumeLogPrefix=program_args[3])
-    else:
-        runKlipReduce(klipReduce=program_args[0], logPrefix=program_args[1], configList=program_args[2])
 
-    print("Reductions Complete")
-    ftime = datetime.now()
-    print("Total Run Time: %s" % str(ftime - stime))
+    # Parse command line arguments.
+    parser = argparse.ArgumentParser()
+    # ... required Argument(s)
+    parser.add_argument("config", type=str, help="Configuration/outputs list (e.g. configs.list)")
+    # ... optional Argument(s)
+    parser.add_argument("-k", "--klip", type=str, default="klipReduce", help="klipReduce path")
+    parser.add_argument("-r", "--resume", action="store_true", help="Resume an already partially complete job")
+    parser.add_argument("--retry-failed", action="store_true", help="Retry failed/incomplete jobs.")
+
+    args = parser.parse_args()
+
+    # Sanity checks.
+    # ... confirm config file exists.
+    if not os.path.isfile(args.config):
+        write_message("e", "Config file does not exist.")
+        exit(1)
+    # ... confirm log files for a "resume" job and make sure not overwriting.
+    if args.resume:
+        pass
+    else:
+        if os.path.isfile(args.config.rsplit(".", 1)[0] + "-1_alltasks.log"):
+            write_message("e", "Existing run exists and would be overwritten. Please move or remove existing log files.")
+            exit()
+    # ... confirm retry failed is only used in conjunction with resume.
+    if args.retry_failed and not args.resume:
+        # TODO: Consider changing this error to simply fixing, or to ONLY retrying failed tasks.
+        write_message("e", "Failed/incomplete jobs can only be retried in conjunction with a resume. Use '--resume'.")
+        exit(1)
+
+    print args
+
+    # Print welcoming message.
+    if args.resume:
+        write_message("i", "Resuming previous analysis from '%s'." % args.config)
+        if args.retry_failed:
+            write_message("i", "Retrying failed/incomplete jobs.")
+    else:
+        write_message("i", "Launching a new analysis from '%s'." % args.config)
+
+    # Define prefix or resume prefix.
+    # TODO: Replace this with something better, including a much better resuming mode.
+    if not args.resume:
+        log_prefix = args.config.rsplit(".", 1)[0] + "-1"
+        resume_log_prefix = None
+    else:
+        base_path = os.path.dirname(os.path.abspath(args.config))
+        log_history = glob.glob(os.path.join(base_path, args.config.rsplit(".", 1)[0] + "-*_alltasks.log"))
+        last = max([int(l.rsplit("-", 1)[-1].rstrip("_alltasks.log")) for l in log_history])
+        log_prefix = args.config.rsplit(".", 1)[0] + "-%d" % (last + 1)
+        resume_log_prefix = args.config.rsplit(".", 1)[0] + "-%d" % last
+        args.config = None
+
+    # Run Findr.
+    runFindr(configList= args.config, klipReduce=args.klip, logPrefix=log_prefix,
+             resume=args.resume, resumeLogPrefix=resume_log_prefix)
+
+
+    # Print concluding message.
+    write_message("i", "Reductions complete!")
+    etime = datetime.now()
+    write_message("i", "Total Run Time: %s." % str(etime - stime))
