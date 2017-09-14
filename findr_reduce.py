@@ -289,10 +289,13 @@ if __name__ == "__main__":
     if not os.path.isfile(args.config):
         write_message("e", "Config file does not exist.")
         exit(1)
-    # ... confirm log files for a "resume" job.
+    # ... confirm log files for a "resume" job and make sure not overwriting.
     if args.resume:
-        # TODO
         pass
+    else:
+        if os.path.isfile(args.config.rsplit(".", 1)[0] + "-1_alltasks.log"):
+            write_message("e", "Existing run exists and would be overwritten. Please move or remove existing log files.")
+            exit()
     # ... confirm retry failed is only used in conjunction with resume.
     if args.retry_failed and not args.resume:
         # TODO: Consider changing this error to simply fixing, or to ONLY retrying failed tasks.
