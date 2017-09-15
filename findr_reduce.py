@@ -327,7 +327,7 @@ if __name__ == "__main__":
             write_message("e", "Existing log file(s) could not be found: %s." % ", ".join(log_status[1]))
             exit(1)
     else:
-        if len(log_status[1]) != 0:
+        if log_status[0] or len(log_status[1]) > 0:
             write_message("e", "Existing logs exist. Please move or remove: %s." % ", ".join(log_status[1]))
             exit(1)
 
