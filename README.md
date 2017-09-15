@@ -24,3 +24,11 @@ Optional arguments:
   --retry-failed RETRY_FAILED   Number of times to retry failed/incomplete jobs.
   -o OUTPUT, --output OUTPUT    Write output to file (default stdout).
 ```
+
+## Citing Findr
+
+If Findr supports your research, please cite us...
+
+Haug-Baltzell, Asher, Jared R. Males, Katie M. Morzinski, Ya-Lin Wu, Nirav Merchant, Eric Lyons, and Laird M. Close.
+**“High-Contrast Imaging in the Cloud with klipReduce and Findr”** 9913:99130F. International Society for Optics and
+Photonics, 2016. [doi:10.1117/12.2234095](http://dx.doi.org/10.1117/12.2234095).
