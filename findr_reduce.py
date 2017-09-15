@@ -239,7 +239,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
     Handles major operations of Findr.
 
     Args:
-        configList (str): Path to config file (see Examples/configs.list).
+        configList (str): Path to config file (see examples/configs.list).
         klipReduce (str): klipReduce path, if klipReduce is in path this can just be 'klipReduce' .
         logPrefix (str): Prefix for log files. This is usually the base of configList (e.g. configs.list -> configs)
         resume (bool, optional): Resume previous run, requires existing log files with given prefix. Default = False.
