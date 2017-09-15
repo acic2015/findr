@@ -10,15 +10,22 @@ import socket
 import tarfile
 
 
-def write_message(message_type, message):
+def write_message(message_type, message, destination=None):
     if message_type.lower() == "e" or message_type.lower() == "error":
-        print("[Findr] %s - ERROR - %s" % (datetime.now(), message))
+        s = "[Findr] %s - ERROR - %s" % (datetime.now(), message)
     elif message_type.lower() == "w" or message_type.lower() == "warning":
-        print("[Findr] %s - WARNING - %s" % (datetime.now(), message))
+        s = "[Findr] %s - WARNING - %s" % (datetime.now(), message)
     elif message_type.lower() == "i" or message_type.lower() == "info":
-        print("[Findr] %s - INFO - %s" % (datetime.now(), message))
+        s = "[Findr] %s - INFO - %s" % (datetime.now(), message)
     else:
-        print("[Findr] %s - MESSAGE - %s" % (datetime.now(), message))
+        s = "[Findr] %s - MESSAGE - %s" % (datetime.now(), message)
+
+    if destination is None:
+        print(s)
+    else:
+        destination.write(s + "\n")
+
+    return 1
 
 
 def get_ip():
@@ -37,7 +44,7 @@ def print_info(port, ip):
     write_message("i", "...       %s" % wkrstr)
 
 
-def compress_remove(filelist, targzname):
+def compress_remove(filelist, targzname, logfile):
     tar = tarfile.open(targzname, "w:gz")
     for f in filelist:
         tar.add(f)
@@ -46,19 +53,19 @@ def compress_remove(filelist, targzname):
         try:
             os.remove(f)
         except OSError:
-            write_message("w", "File not found (%s): skipping delete" % str(f))
+            write_message("w", "File not found (%s): skipping delete" % str(f), logfile)
 
 
-def write_worker_report(queue):
+def write_worker_report(queue, logfile):
     wkr_str = "connected(%s), busy(%s), idle(%s), lost(%s)" % (str(queue.stats.total_workers_connected),
                                                                str(queue.stats.workers_busy),
                                                                str(queue.stats.workers_idle),
                                                                str(queue.stats.total_workers_removed))
     tsk_str = "running(%s), waiting (%s)" % (str(queue.stats.tasks_running),
                                              str(queue.stats.tasks_waiting))
-    write_message("i", "Status Report (time elapsed %s):" % str(datetime.now() - stime))
-    write_message("i", "... Workers: %s." % wkr_str)
-    write_message("i", "... Tasks: %s." % tsk_str)
+    write_message("i", "Status Report (time elapsed %s):" % str(datetime.now() - stime), logfile)
+    write_message("i", "... Workers: %s." % wkr_str, logfile)
+    write_message("i", "... Tasks: %s." % tsk_str, logfile)
 
 
 def write_task_report(task, queue):
@@ -72,14 +79,14 @@ def write_task_report(task, queue):
     return "\t".join([str(l) for l in rl]) + "\n"
 
 
-def spawn_queue(port, logprefix):
+def spawn_queue(port, logprefix, logfile):
     queue = WorkQueue(port)
     queue.specify_log(logprefix + "_wq.log")
     monitor_status = queue.enable_monitoring(logprefix + "_monitors")
     if not monitor_status:
-        write_message("w", "Monitoring failed to initialize.")
+        write_message("w", "Monitoring failed to initialize.", logfile)
     # queue.specify_password_file()  # TODO: Give workers a password file
-    write_message("i", "Workqueue launched on port %s." % str(port))
+    write_message("i", "Workqueue launched on port %s." % str(port), logfile)
     return queue, monitor_status
 
 
@@ -112,7 +119,7 @@ def check_logs(prefix):
     return [[l[i] for i in range(len(f)) if f[i]], [l[i] for i in range(len(f)) if not f[i]]]
 
 
-def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
+def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=None):
     """
     runKlipReduce: Distribute klipReduce tasks across resources using WorkQueue.
 
@@ -131,9 +138,9 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
     """
     # Print welcoming message.
     if resume:
-        write_message("i", "Resuming previous analysis from '%s'." % configList)
+        write_message("i", "Resuming previous analysis from '%s'." % configList, logfile)
     else:
-        write_message("i", "Launching a new analysis from '%s'." % configList)
+        write_message("i", "Launching a new analysis from '%s'." % configList, logfile)
 
     # Set number of files completed that will trigger compression, the root and starting iterator of batch names.
     compress_threshold = 100
@@ -178,15 +185,15 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
     port = WORK_QUEUE_DEFAULT_PORT
     # Launch work queue
     try:
-        q, monitoring = spawn_queue(port, logPrefix)
+        q, monitoring = spawn_queue(port, logPrefix, logfile)
     except:
-        write_message("w", "Failed to launch on default WorkQueue port. Trying to find an available port...")
+        write_message("w", "Failed to launch on default WorkQueue port. Trying to find an available port...", logfile)
         try:
             port = 0
-            q, monitoring = spawn_queue(port, logPrefix)
+            q, monitoring = spawn_queue(port, logPrefix, logfile)
         except Exception as e:
-            write_message("e", "Instantiation of Work Queue failed!")
-            write_message("e", e)
+            write_message("e", "Instantiation of Work Queue failed!", logfile)
+            write_message("e", e, logfile)
             exit(1)
 
     # Generate tasks & submit to queue, record dictionary of taskid:expected output.
@@ -221,11 +228,11 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                 complete_count += 1
 
         # Write successful launch information.
-        write_message("i", "Findr launched successfully!")
+        write_message("i", "Findr launched successfully!", logfile)
         print_info(str(q.port), str(get_ip()))
-        write_message("i", "%s tasks submitted to queue." % str(submit_count))
+        write_message("i", "%s tasks submitted to queue." % str(submit_count), logfile)
         if resume:
-            write_message("i", "%s tasks already complete." % str(complete_count))
+            write_message("i", "%s tasks already complete." % str(complete_count), logfile)
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
@@ -236,18 +243,19 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                           "WorkersConnected\tWorkersBusy\tWorkersIdle\tWorkersRemoved\t"
                           "TasksComplete\tTasksRunning\tTasksWaiting\tTotalExecuteTime\n")
 
-        write_worker_report(q)
+        write_worker_report(q, logfile)
         tries = 0
         while not q.empty():
             tries += 1
             t = q.wait(6)
             # Write report of worker conditions
             if not tries % 10:
-                write_worker_report(q)
+                write_worker_report(q, logfile)
             # If tasks have returned.
             if t:
                 # Print return message.
-                write_message("i", "Task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status))
+                write_message("i", "Task (id# %d) complete: %s (return code %d)" % (t.id, t.command, t.return_status),
+                              logfile)
                 if monitoring:
                     use_log.write(write_task_report(t, q))
 
@@ -272,7 +280,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
                             done.append(expect)
                     else:
                         # Output is missing, alert user and write to failed tasks.
-                        write_message("w", "Missing output - " + str(t.command))
+                        write_message("w", "Missing output - " + str(t.command), logfile)
                         failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                         all_tasks[expect][1] = "failed"
                         all_tasks[expect][2] += 1
@@ -284,16 +292,16 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
                 if len(done) >= compress_threshold:
-                    compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
+                    compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)), logfile)
                     batch_count += 1
                     done = []
         # Compress any remaining outputs.
         if len(done) > 0:
-            compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)))
+            compress_remove(done, "%s%s.tar.gz" % (batch_root, str(batch_count)), logfile)
 
     if monitoring:
         use_log.close()
-    write_message("i", "All tasks complete!")
+    write_message("i", "All tasks complete!", logfile)
     return 1
 
 
@@ -309,8 +317,12 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--klip", type=str, default="klipReduce", help="klipReduce path.")
     parser.add_argument("-r", "--resume", action="store_true", help="Resume an already partially complete job.")
     parser.add_argument("--retry-failed", type=int, default=0, help="Number of times to retry failed/incomplete jobs.")
+    parser.add_argument("-o", "--output", type=str, default=None, help="Write output to file (default stdout).")
     # ... parse args.
     args = parser.parse_args()
+
+    # Print first message.
+    write_message("i", "Findr starting.")
 
     # Confirm config file exists.
     if not os.path.isfile(args.config):
@@ -329,10 +341,24 @@ if __name__ == "__main__":
             write_message("e", "Existing logs exist. Please move or remove: %s." % ", ".join(log_status[0]))
             exit(1)
 
+    # Open output file if specified.
+    if args.output is not None:
+        log_out = open(args.output, "a+", 1)
+    else:
+        log_out = None
+
     # Run Findr.
-    runFindr(configList=args.config, klipReduce=args.klip, logPrefix=log_prefix, resume=args.resume)
+    runFindr(configList=args.config, klipReduce=args.klip, logPrefix=log_prefix,
+             resume=args.resume, retry=args.retry_failed, logfile = log_out)
 
     # Print concluding message.
-    write_message("i", "Findr complete!")
+    write_message("i", "Findr complete!", log_out)
     etime = datetime.now()
-    write_message("i", "Total Run Time: %s." % str(etime - stime))
+    write_message("i", "Total Run Time: %s." % str(etime - stime), log_out)
+
+    # Close output file if specified
+    if args.output is not None:
+        log_out.close()
+
+    # Print final message.
+    write_message("i", "Done.")
