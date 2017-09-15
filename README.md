@@ -5,6 +5,10 @@
 
 Findr leverages scalable computing infrastructure for exoplanet identification.
 
+Maintained by [Asher Baltzell](https://github.com/asherkhb)
+
+Originally developed by the [2015 ACIC Applied Cyberinfrastructure Concepts class](https://github.com/acic2015/findr/wiki/Contributors).
+
 ## Basic Usage
 
 ```
@@ -20,7 +24,3 @@ Optional arguments:
   --retry-failed RETRY_FAILED   Number of times to retry failed/incomplete jobs.
   -o OUTPUT, --output OUTPUT    Write output to file (default stdout).
 ```
-
-Maintained by [Asher Baltzell](https://github.com/asherkhb)
-
-Originally developed by the [2015 ACIC Applied Cyberinfrastructure Concepts class](https://github.com/acic2015/findr/wiki/Contributors).
