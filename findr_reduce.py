@@ -120,22 +120,6 @@ def check_logs(prefix):
 
 
 def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=None):
-    """
-    runKlipReduce: Distribute klipReduce tasks across resources using WorkQueue.
-
-    ## Example Usages ##
-    # New Run #
-    runKlipReduce(klipReduce="klipReduce", logPrefix="try1", "configList")
-    # Resume Previous Run #
-    runKlipReduce(klipReduce="klipReduce", logPrefix="try2", resume=True, resumeLogPrefix="try1")
-
-    :param klipReduce: command or path to klipReduce.
-    :param logPrefix: prefix to attach to run logs.
-    :param configList: list of input files & expected output files.
-    :param resume: OPTIONAL, specify true if want to resume from a previous run.
-    :param resumeLogPrefix: OPTIONAL, prefix of a previous run logs from which to resume.
-    :return:
-    """
     # Print welcoming message.
     if resume:
         write_message("i", "Resuming previous analysis from '%s'." % configList, logfile)
@@ -148,9 +132,9 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
     batch_count = 0
 
     # Define log file names.
-    alltasklog = logPrefix + "_all.log"
-    completetasklog = logPrefix + "_complete.log"
-    failedtasklog = logPrefix + "_failed.log"
+    alltlog = logPrefix + "_all.log"
+    completetlog = logPrefix + "_complete.log"
+    failedtlog = logPrefix + "_failed.log"
     usagelog = logPrefix + "_usage.log"
 
     # Build task list.
@@ -174,7 +158,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
                     batch_count = count + 1
 
         # Read & mark complete tasks.
-        with open(completetasklog, 'r') as c:
+        with open(completetlog, 'r') as c:
             for line in c:
                 details = line.strip().split('\t')
                 all_tasks[details[0]][1] = "complete"
@@ -200,7 +184,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
     submit_count = 0
     complete_count = 0
     task_details = {}
-    with open(alltasklog, 'a+', 1) as alltasks, open(completetasklog, 'a+', 1) as completetasks, open(failedtasklog, 'a+', 1) as failedtasks:
+    with open(alltlog, 'a+', 1) as allt, open(completetlog, 'a+', 1) as completet, open(failedtlog, 'a+', 1) as failedt:
         for outf, details in all_tasks.iteritems():
             if details[1] != "complete":
                 # Specify command.
@@ -209,15 +193,10 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
 
                 # Build task.
                 t = create_task(command, cfg, outf)
-                #t = Task(command)
-                #t.specify_tag(command)
-                #t.specify_file(cfg, os.path.basename(cfg), WORK_QUEUE_INPUT, cache=False)
-                #t.specify_file(outf, os.path.basename(outf), WORK_QUEUE_OUTPUT, cache=False)
-                #Add other file specifications as needed here.
 
                 # If not resuming, add job to _all.log.
                 if not resume:
-                    alltasks.write("%s\t%s\n" % (outf, command))
+                    allt.write("%s\t%s\n" % (outf, command))
 
                 # Submit task to queue.
                 taskid = q.submit(t)
@@ -235,7 +214,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
             write_message("i", "%s tasks already complete." % str(complete_count), logfile)
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
-        if monitoring:
+        if monitoring and not resume:
             use_log = open(usagelog, 'a+', 1)
             use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\t"
                           "CPUTime\tWallTime\tCores\tVirtualMemory\tSwapMemory\t"
@@ -267,28 +246,28 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
                     all_tasks[expect][2] += 1
                     if all_tasks[expect][2] <= retry:
                         # Todo: Resubmit task to queue, if under retry limit.
-                        failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                        failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                     else:
-                        failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                        failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                 else:
                     # Task succeeded. Check for valid output.
                     if os.path.exists(expect):
                         # Task succeeded & output exists. Write to complete task log.
-                        completetasks.write("%s\t%s\n" % (expect, t.tag))
+                        completet.write("%s\t%s\n" % (expect, t.tag))
                         all_tasks[expect][1] = "complete"
                         if expect not in done:
                             done.append(expect)
                     else:
                         # Output is missing, alert user and write to failed tasks.
                         write_message("w", "Missing output - " + str(t.command), logfile)
-                        failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                        failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                         all_tasks[expect][1] = "failed"
                         all_tasks[expect][2] += 1
                         if all_tasks[expect][2] <= retry:
                             # Todo: Resubmit task to queue, if under retry limit.
-                            failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                            failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
                         else:
-                            failedtasks.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                            failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
 
                 # Check if compression threshold is met, if true gzip & tar then remove uncompressed versions.
                 if len(done) >= compress_threshold:
@@ -344,12 +323,13 @@ if __name__ == "__main__":
     # Open output file if specified.
     if args.output is not None:
         log_out = open(args.output, "a+", 1)
+        write_message("i", "Writing stdout to %s" % args.output)
     else:
         log_out = None
 
     # Run Findr.
     runFindr(configList=args.config, klipReduce=args.klip, logPrefix=log_prefix,
-             resume=args.resume, retry=args.retry_failed, logfile = log_out)
+             resume=args.resume, retry=args.retry_failed, logfile=log_out)
 
     # Print concluding message.
     write_message("i", "Findr complete!", log_out)
