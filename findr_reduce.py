@@ -11,6 +11,22 @@ import tarfile
 
 
 def write_message(message_type, message, destination=None):
+    """Write informative message.
+
+    Writes a Findr-styled informative message either to stdout, or to a destination output file. Four types of messages
+    are currently supported: "INFO" (informative messages), "WARNING" (non-critical errors), "ERROR" (critical errors),
+    and "MESSAGE" (unspecified message type). ERROR messages should always be accompanied by an exit() call.
+
+    Args:
+        message_type (str): Type of message - "i"/"info", "w"/"warning", "e"/"error".
+        message (str): Text to accompany message.
+        destination (file -or- None, optional): Open file to write messages. Default = None (write to stdout).
+
+    Returns:
+        int: Always returns 1.
+
+    """
+    # Set message.
     if message_type.lower() == "e" or message_type.lower() == "error":
         s = "[Findr] %s - ERROR - %s" % (datetime.now(), message)
     elif message_type.lower() == "w" or message_type.lower() == "warning":
@@ -20,6 +36,7 @@ def write_message(message_type, message, destination=None):
     else:
         s = "[Findr] %s - MESSAGE - %s" % (datetime.now(), message)
 
+    # Write to destination.
     if destination is None:
         print(s)
     else:
@@ -29,6 +46,15 @@ def write_message(message_type, message, destination=None):
 
 
 def get_ip():
+    """Get IP address.
+
+    Opens a socket to 8.8.8.8 to obtains a best-guess IP address for the machine. Sometimes returns a local IP, so care
+    should be taken.
+
+    Returns:
+        str: Best-guess IP address for the machine
+
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
@@ -37,26 +63,69 @@ def get_ip():
 
 
 def print_info(port, ip):
-    wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (ip, port)
-    write_message("i", "Listening for workers @ %s on port %s." % (ip, port))
+    """Print Queue Information
+
+    Prints a helpful summary of queue information to stdout.
+
+    Args:
+        port (str -or- int): Port on which queue is listening.
+        ip (str): IP address where queue is listening.
+
+    Returns:
+        int: Always returns 1.
+
+    """
+    wkrstr = "work_queue_worker -d all --cores 0 %s %s" % (ip, str(port))
+    write_message("i", "Listening for workers @ %s on port %s." % (ip, str(port)))
     write_message("i", "... This is a best guess IP, depending on your computing environment you may need to adjust.")
     write_message("i", "... HINT: To start a worker, you can probably use this command:")
     write_message("i", "...       %s" % wkrstr)
 
+    return 1
+
 
 def compress_remove(filelist, targzname, logfile):
+    """Compress file list, remove uncompressed versions.
+
+    Compresses all files named in a list (filelist) to a tarball (targzname). Writes any warnings using write_message().
+
+    Args:
+        filelist (list): List of filenames/paths to compress
+        targzname (str): Name of tarball to output. Should always end in ".tar.gz".
+        logfile (str -or- None): Open log file for write_message(), or None for stdout.
+
+    Returns:
+        str: Output tarball filename.
+
+    """
+    # Compress files.
     tar = tarfile.open(targzname, "w:gz")
     for f in filelist:
         tar.add(f)
     tar.close()
+    # Remove uncompressed versions.
     for f in filelist:
         try:
             os.remove(f)
         except OSError:
             write_message("w", "File not found (%s): skipping delete" % str(f), logfile)
+    return targzname
 
 
 def write_worker_report(queue, logfile):
+    """Write queue status report.
+
+    Writes a summary of the current queue, including worker stats (connected, busy, idle, and lost) and jobs (running,
+    waiting). Writes using write_message().
+
+    Args:
+        queue (work_queue::WorkQueue): Active queue of interest.
+        logfile (str -or- None): Open log file for write_message(), or None for stdout.
+
+    Return:
+        int: Always returns 1.
+
+    """
     wkr_str = "connected(%s), busy(%s), idle(%s), lost(%s)" % (str(queue.stats.total_workers_connected),
                                                                str(queue.stats.workers_busy),
                                                                str(queue.stats.workers_idle),
@@ -66,9 +135,26 @@ def write_worker_report(queue, logfile):
     write_message("i", "Status Report (time elapsed %s):" % str(datetime.now() - stime), logfile)
     write_message("i", "... Workers: %s." % wkr_str, logfile)
     write_message("i", "... Tasks: %s." % tsk_str, logfile)
+    return 1
 
 
 def write_task_report(task, queue):
+    """Generate task usage report entry.
+
+    Generates a report of task computational usage, including task ID, executed command, start time, end time, exit
+    status, CPU time, wall time, cores used, virtual memory used, swap memory used, total processes executed, max
+    concurrent processes, bytes read, bytes written, number of workeres connected at completion, workers busy at
+    completion, workers idle at completion, workers lost at completion, number of tasks complete, number of tasks
+    running, number of tasks waiting, and the total Findr execution time.
+
+    Args:
+        task (work_queue::Task): Completed task, which has had resource monitoring enabled.
+        queue (work_queue::WorkQueue): Active queue.
+
+    Returns:
+        str: Tab-separated usage values.
+
+    """
     r = task.resources_measured
     s = queue.stats
     rl = [task.id, r.command, r.start, r.end, r.exit_status,
@@ -80,6 +166,20 @@ def write_task_report(task, queue):
 
 
 def spawn_queue(port, logprefix, logfile):
+    """ Spawn a job queue.
+
+    Launch a job queue listening on a given port. Writes warnings using write_message().
+
+    Args:
+        port (int -or- str): Port which queue should listen for workers.
+        logprefix (str): Prefix for queue log.
+        logfile (str -or- None): Open log file for write_message(), or None for stdout.
+
+    Returns:
+        work_queue::WorkQueue: Queue object.
+        bool: Status of enabling compute monitoring. True for success, False for failure.
+
+    """
     queue = WorkQueue(port)
     queue.specify_log(logprefix + "_wq.log")
     monitor_status = queue.enable_monitoring(logprefix + "_monitors")
@@ -91,6 +191,19 @@ def spawn_queue(port, logprefix, logfile):
 
 
 def create_task(cmd, cfgf, outpf):
+    """ Create a task.
+
+    Create a klipReduce task, to be submitted to the queue.
+
+    Args:
+        cmd (str): Command-line text for task execution (e.g. 'klipReduce -c my_config.cfg')
+        cfgf (str): Path to configuration file.
+        outpf (str): Expected output.
+
+    Returns:
+        work_queue::Task: Task object.
+
+    """
     # Build task.
     t = Task(cmd)
     t.specify_tag(cmd)
@@ -100,18 +213,19 @@ def create_task(cmd, cfgf, outpf):
     return t
 
 
-def delete_line(filepath, line):
-    f = open(filepath, "r+")
-    d = f.readlines()
-    f.seek(0)
-    for i in d:
-        if i != line:
-            f.write(i)
-    f.truncate()
-    f.close()
-
-
 def check_logs(prefix):
+    """Check logs.
+
+    Checks for existing Findr logs. Currently checks for <prefix>_all.log", <prefix>_complete.log",
+    <prefix>_failed.log", <prefix>_usage.log".
+
+    Args:
+        prefix (str): Logfile prefix.
+
+    Returns:
+        list: List of found and missing log files [[found, logs], [missing, logs]].
+
+    """
     l = [prefix + "_all.log", prefix + "_complete.log", prefix + "_failed.log", prefix + "_usage.log"]
     f = [os.path.isfile(x) for x in l]
 
@@ -120,6 +234,22 @@ def check_logs(prefix):
 
 
 def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=None):
+    """ Run Findr.
+
+    Handles major operations of Findr.
+
+    Args:
+        configList (str): Path to config file (see Examples/configs.list).
+        klipReduce (str): klipReduce path, if klipReduce is in path this can just be 'klipReduce' .
+        logPrefix (str): Prefix for log files. This is usually the base of configList (e.g. configs.list -> configs)
+        resume (bool, optional): Resume previous run, requires existing log files with given prefix. Default = False.
+        retry (int, optional): [NOT IMPLEMENTED] Number of times to retry failed tasks. Default = 0.
+        logfile (file -or- None, optional): Open file object to write messages, or None for stdout. Default = None.
+
+    Return:
+        int: Always returns 1.
+
+    """
     # Print welcoming message.
     if resume:
         write_message("i", "Resuming previous analysis from '%s'." % configList, logfile)
@@ -242,6 +372,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
                 expect = task_details[t.id][0]
                 if t.return_status != 0:
                     # Task failed. Write to failed task log.
+                    write_message("w", "... failure (return code %s)." % str(t.return_status), logfile)
                     all_tasks[expect][1] = "failed"
                     all_tasks[expect][2] += 1
                     if all_tasks[expect][2] <= retry:
@@ -253,14 +384,17 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0, logfile=N
                     # Task succeeded. Check for valid output.
                     if os.path.exists(expect):
                         # Task succeeded & output exists. Write to complete task log.
+                        write_message("i", "... success.", logfile)
                         completet.write("%s\t%s\n" % (expect, t.tag))
                         all_tasks[expect][1] = "complete"
                         if expect not in done:
                             done.append(expect)
+                        else:
+                            write_message("w", "Task %s complete, but '%s' already existed." % (str(t.id), expect),
+                                          logfile)
                     else:
                         # Output is missing, alert user and write to failed tasks.
-                        write_message("w", "Missing output - " + str(t.command), logfile)
-                        failedt.write("%s\t%s\t%s\n" % (expect, t.tag, str(all_tasks[expect][2])))
+                        write_message("w", "... failure. (missing output %s)." % str(t.expect), logfile)
                         all_tasks[expect][1] = "failed"
                         all_tasks[expect][2] += 1
                         if all_tasks[expect][2] <= retry:
@@ -323,7 +457,7 @@ if __name__ == "__main__":
     # Open output file if specified.
     if args.output is not None:
         log_out = open(args.output, "a+", 1)
-        write_message("i", "Writing stdout to %s" % args.output)
+        write_message("i", "Writing messages to %s" % args.output)
     else:
         log_out = None
 
