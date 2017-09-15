@@ -193,7 +193,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
     submit_count = 0
     complete_count = 0
     task_details = {}
-    with open(alltasklog, 'w', 1) as alltasks, open(completetasklog, 'w', 1) as completetasks, open(failedtasklog, 'w', 1) as failedtasks:
+    with open(alltasklog, 'a+', 1) as alltasks, open(completetasklog, 'a+', 1) as completetasks, open(failedtasklog, 'a+', 1) as failedtasks:
         for outf, details in all_tasks.iteritems():
             if details[1] != "complete":
                 # Specify command.
@@ -229,7 +229,7 @@ def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
 
         # Monitor queue, alert user to status, compress and remove files at specified threshold.
         if monitoring:
-            use_log = open(usagelog, 'w', 1)
+            use_log = open(usagelog, 'a+', 1)
             use_log.write("TaskID\tCommand\tStart\tEnd\tExitStatus\t"
                           "CPUTime\tWallTime\tCores\tVirtualMemory\tSwapMemory\t"
                           "TotalProcesses\tMaxConcurrentProcesses\tBytesRead\tBytesWritten\t"
