@@ -109,7 +109,7 @@ def check_logs(prefix):
     f = [os.path.isfile(x) for x in l]
 
     # Return [[found], [missing]]
-    return [[[l[i] for i in range(len(f)) if f[i]]], [l[i] for i in range(len(f)) if not f[i]]]
+    return [[l[i] for i in range(len(f)) if f[i]], [l[i] for i in range(len(f)) if not f[i]]]
 
 
 def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
