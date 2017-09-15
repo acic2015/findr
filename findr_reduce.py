@@ -109,7 +109,7 @@ def check_logs(prefix):
     f = [os.path.isfile(x) for x in l]
 
     if all(f):
-        return [True, []]
+        return [True, l]
     else:
         return [False, [l[i] for i in range(len(f)) if f[i]]]
 
