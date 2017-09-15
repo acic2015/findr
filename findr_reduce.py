@@ -108,10 +108,8 @@ def check_logs(prefix):
     l = [prefix + "_all.log", prefix + "_complete.log", prefix + "_failed.log", prefix + "_usage.log"]
     f = [os.path.isfile(x) for x in l]
 
-    if all(f):
-        return [True, l]
-    else:
-        return [False, [l[i] for i in range(len(f)) if f[i]]]
+    # Return [[found], [missing]]
+    return [[[l[i] for i in range(len(f)) if f[i]]], [l[i] for i in range(len(f)) if not f[i]]]
 
 
 def runFindr(configList, klipReduce, logPrefix, resume=False, retry=0):
@@ -323,12 +321,12 @@ if __name__ == "__main__":
     log_prefix = args.config.rsplit(".", 1)[0]
     log_status = check_logs(log_prefix)
     if args.resume:
-        if not log_status[0]:
+        if len(log_status[1]) > 0:
             write_message("e", "Existing log file(s) could not be found: %s." % ", ".join(log_status[1]))
             exit(1)
     else:
-        if log_status[0] or len(log_status[1]) > 0:
-            write_message("e", "Existing logs exist. Please move or remove: %s." % ", ".join(log_status[1]))
+        if len(log_status[0]) > 0:
+            write_message("e", "Existing logs exist. Please move or remove: %s." % ", ".join(log_status[0]))
             exit(1)
 
     # Run Findr.
