@@ -117,7 +117,7 @@ for n, group in enumerate(perm):
         if parameters[i] in linked_parameters:
             for j in range(len(linked_parameters[parameters[i]])):
                 link_param = linked_parameters[parameters[i]][j]
-                link_val = linked_values[link_param][i]
+                link_val = linked_values[link_param][values[i].index(group[i])]
                 ofile.write("%s=%s\n" % (link_param, link_val))
     # Add expected output file name
     ofile.write("%s=%s\n" % (output_parameter, f + output_extension))
